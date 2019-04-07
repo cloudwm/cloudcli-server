@@ -256,7 +256,6 @@
           }
         },
         {
-          "alpha": true,
           "use": "create",
           "short": "Create a server",
           "flags": [

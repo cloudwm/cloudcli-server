@@ -5,8 +5,12 @@ if [ "${API_KEY}" == "" ]; then
     echo "Generated random API_KEY: ${API_KEY}"
 fi
 
-if [ "$*" == "" ]; then
-    php -S 0.0.0.0:8000 -t public
+if which apache2-foreground >/dev/null 2>&1; then
+    exec apache2-foreground
 else
-    exec "$@"
+    if [ "$*" == "" ]; then
+        php -S 0.0.0.0:8000 -t public
+    else
+        exec "$@"
+    fi
 fi

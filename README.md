@@ -2,6 +2,28 @@
 
 Server-side component to support [cloudcli](https://github.com/cloudwm/cloudcli)
 
+## Running the server locally
+
+Build
+
+```
+docker build -t cloudcli-server .
+```
+
+Run using proxy provider to a supported server
+
+```
+docker run --sig-proxy=false -e CLOUDCLI_PROVIDER=proxy -e CLOUDCLI_API_SERVER=https://console.kamatera.com -p 8080:80 cloudcli-server
+```
+
+Run cloudcli using this server:
+
+```
+cloudcli --api-server http://localhost:8080 init
+```  
+
+see [cloudcli README](https://github.com/OriHoch/cloudcli/blob/master/README.md) for cloudcli configuration and usage.
+
 ## Running the server for development
 
 Clone and change to the project root directory:

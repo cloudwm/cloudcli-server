@@ -1,5 +1,14 @@
-bootstrap/cache/*
-!bootstrap/cache/.gitignore
+bootstrap/cache
 database/*.sqlite
 storage
 vendor
+tests
+.editorconfig
+.env
+.env.example
+.git*
+composer.phar
+Dockerfile.dev
+phpunit.xml
+*.md
+Dockerfile
