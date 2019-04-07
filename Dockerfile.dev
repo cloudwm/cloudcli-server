@@ -1,0 +1,19 @@
+FROM php:7.1
+
+# https://github.com/composer/getcomposer.org/commits/master
+ENV COMPOSER_COMMIT=cb19f2aa3aeaa2006c0cd69a7ef011eb31463067
+RUN curl -s "https://raw.githubusercontent.com/composer/getcomposer.org/${COMPOSER_COMMIT}/web/installer" | php &&\
+    mv composer.phar /usr/local/bin/composer && chmod +x /usr/local/bin/composer
+RUN apt-get update && apt-get install -y git unzip libzip-dev && docker-php-ext-install zip bcmath
+
+ARG CLOUDCLI_USER_ID
+ARG CLOUDCLI_GROUP_ID
+RUN groupadd --gid $CLOUDCLI_GROUP_ID --system cloudwm &&\
+    useradd --home-dir /home/cloudwm --gid $CLOUDCLI_GROUP_ID --create-home --system --uid $CLOUDCLI_USER_ID cloudwm
+
+USER cloudwm
+WORKDIR /home/cloudwm
+RUN composer global require laravel/installer
+ENV PATH=/home/cloudwm/.composer/vendor/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+WORKDIR /home/cloudwm/cloudcli-server
+ENV LOG_CHANNEL errorlog

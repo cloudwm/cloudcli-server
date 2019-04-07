@@ -1,0 +1,5 @@
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+database/*.sqlite
+storage
+vendor
