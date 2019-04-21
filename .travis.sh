@@ -3,7 +3,8 @@
 DOCKER_IMAGE=cloudwm/cloudcli-server
 
 if [ "${1}" == "script" ]; then
-    ! docker build -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${TRAVIS_COMMIT} . && exit 1
+    docker pull ${DOCKER_IMAGE}:latest
+    ! docker build --cache-from ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${TRAVIS_COMMIT} . && exit 1
     echo "Running cloudcli tests"
     docker run -d --sig-proxy=false -e CLOUDCLI_PROVIDER=proxy -e CLOUDCLI_API_SERVER=$TEST_API_SERVER -p 8080:80 ${DOCKER_IMAGE}:${TRAVIS_COMMIT}
     sleep 5
