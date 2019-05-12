@@ -2,6 +2,9 @@
 
 namespace App\Cloudcli;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+
 class TestServer extends BaseServer {
 
     function listServers($request, $command) {
@@ -23,6 +26,14 @@ class TestServer extends BaseServer {
 
     function getServerOptions($request, $command) {
         return json_decode(TEST_SERVER_OPTIONS_JSON, true);
+    }
+
+    function createServer($request, $command) {
+        return $this->_serverPost($request, $command);
+    }
+
+    protected function _serverPost(Request $request, $command, $httpMethod=null) {
+        return ["1234567"];
     }
 
 }
