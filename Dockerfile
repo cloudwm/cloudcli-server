@@ -28,7 +28,7 @@ RUN chown -R 1000:1000 /home/cloudwm
 USER cloudwm
 RUN mkdir -p bootstrap/cache storage/app/public storage/framework/cache storage/framework/sessions \
              storage/framework/testing storage/framework/views storage/logs
-ENV CLI_SCHEMA_JSON /home/cloudwm/cli_schema.json
+ENV CLI_SCHEMA_JSON_DIR /home/cloudwm/cli_schema
 RUN composer install --optimize-autoloader
 
 USER root
