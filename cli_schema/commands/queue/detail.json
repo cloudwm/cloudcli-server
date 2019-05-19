@@ -1,0 +1,62 @@
+{
+  "use": "detail",
+  "short": "Get details of tasks",
+  "default-format": "yaml",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Command ids to get details for\n--id ID1 --id ID2",
+      "required": true,
+      "array": true
+    },
+    {
+      "name": "log",
+      "usage": "Only output the command log",
+      "bool": true
+    },
+    {
+      "name": "wait",
+      "usage": "Wait for command to complete",
+      "bool": true
+    }
+  ],
+  "run": {
+    "cmd": "getList",
+    "path": "/service/queue",
+    "method": "getQueue",
+    "serverPath": "/service/queue/<id>",
+    "fields": [
+      {
+        "name": "id",
+        "number": true,
+        "flag": "id",
+        "array": true
+      },
+      {
+        "name": "status",
+        "wait": "complete",
+        "waitPrintField": "log"
+      },
+      {
+        "name": "server"
+      },
+      {
+        "name": "description"
+      },
+      {
+        "name": "added"
+      },
+      {
+        "name": "executed"
+      },
+      {
+        "name": "completed"
+      },
+      {
+        "name": "log",
+        "long": true,
+        "flag": "log"
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "wait",
+  "usage": "Wait for command execution to finish only then exit cli.",
+  "bool": true,
+  "processing": [
+    {
+      "method": "validateAllowedOutputFormats",
+      "args": ["human"]
+    }
+  ]
+}

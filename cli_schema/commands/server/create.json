@@ -1,0 +1,175 @@
+{
+  "use": "create",
+  "short": "Create a server",
+  "wait": true,
+  "flags": [
+    {
+      "name": "name",
+      "usage": "Server name (a-zA-Z0-9()_-). (must be at least 4 characters long, mandatory)",
+      "required": true
+    },
+    {
+      "name": "password",
+      "usage": "Server password (a-z, A-Z, 0-9, !@#$^&*()~). (must be 10-20 characters long with at least 1 capital letter, 1 small letter and 1 digit, mandatory)",
+      "required": true
+    },
+    {
+      "name": "datacenter",
+      "usage": "Server datacenter (EU, US-NY2, AS.. see server options subcommand). (mandatory)",
+      "required": true
+    },
+    {
+      "name": "image",
+      "usage": "Server image name or image ID (see server options subcommand). (mandatory)",
+      "required": true
+    },
+    {
+      "name": "cpu",
+      "usage": "CPU count and type. (optional, default: 1B)",
+      "default": "1B"
+    },
+    {
+      "name": "ram",
+      "usage": "Size of server ram in MiB. (optional, default: 1024)",
+      "default": "1024"
+    },
+    {
+      "name": "disk",
+      "array": true,
+      "usage": "Configure Persistent Disks, Up to 4 disks allowed. (at least 1 is mandatory)\n--disk id=ID,size=SIZE --disk <DISK2>..\nID: first disk # is 0. (optional, default is auto-incremented starting from 0)\nSIZE: in GiB. (optional, defaults to one 20GB disk)",
+      "fields": [
+        {"name": "id"}, {"name": "size"}
+      ],
+      "default": "id=0,size=20"
+    },
+    {
+      "name": "dailybackup",
+      "usage": "Set Daily Backup (yes | no). (optional, default: no)",
+      "default": "no"
+    },
+    {
+      "name": "managed",
+      "usage": "Set Managed Hosting Services (yes | no). (optional, default: no)",
+      "default": "no"
+    },
+    {
+      "name": "network",
+      "array": true,
+      "usage": "Configure networking, up to 4 networks allowed. (at least 1 is mandatory)\n--network id=ID,name=NAME,ip=IP --network <NETWORK2>..\nID: first network # is 0. (optional, default is auto-incremented starting from 0)\nNAME: Set the network VLAN name, set 'wan' for wan interface, otherwise, set the name of an existing lan. (mandatory)\nIP: Set the IP address of the server’s network interface. Set 'auto' for auto allocation. (mandatory)",
+      "fields": [
+        {"name": "id"}, {"name": "name"}, {"name": "ip"}
+      ],
+      "default": "id=0,name=wan,ip=auto"
+    },
+    {
+      "name": "quantity",
+      "usage": "Number of servers to create, up to 50 servers. (optional, default: 1)",
+      "default": "1"
+    },
+    {
+      "name": "billingcycle",
+      "usage": "Servers' Billing Cycle. (hourly | monthly) (optional, default: hourly)",
+      "default": "hourly"
+    },
+    {
+      "name": "monthlypackage",
+      "usage": "Monthly billing cycle package (see server options subcommand). (optional in monthly billing cycle, default: t5000)",
+      "default": "t5000"
+    },
+    {
+      "name": "poweronaftercreate",
+      "usage": "Power on server after server created. (optional, default: yes)",
+      "default": "yes"
+    },
+    "<< getSchemaPart flags/wait >>"
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/service/server",
+    "method": "createServer",
+    "serverPostMethod": "returnProxyHttpPostJsonResponse",
+    "serverPostMultipartArray": true,
+    "serverPath": "/svc/serverCreate",
+    "serverPostProcessing": [
+      {
+        "method": "validateDiskImageId"
+      },
+      {
+        "method": "createServerPostProcessing"
+      }
+    ],
+    "fields": [
+      {
+        "name": "name",
+        "flag": "name"
+      },
+      {
+        "name": "password",
+        "flag": "password",
+        "serverProcessing": [
+          {
+            "method":  "validateChars",
+            "atLeastOneOf":  [
+              "qwertyuiopasdfghjklzxcvbnm",
+              "QWERTYUIOPASDFGHJKLZXCVBNM",
+              "0123456789"
+            ],
+            "extraAllowedChars": "!@#$^&*()~",
+            "minLength": 10,
+            "maxLength": 20
+          }
+        ]
+      },
+      {
+        "name": "datacenter",
+        "flag": "datacenter"
+      },
+      {
+        "name": "image",
+        "flag": "image"
+      },
+      {
+        "name": "cpu",
+        "flag": "cpu"
+      },
+      {
+        "name": "ram",
+        "flag": "ram"
+      },
+      {
+        "name": "disk",
+        "flag": "disk",
+        "array": true
+      },
+      {
+        "name": "dailybackup",
+        "flag": "dailybackup"
+      },
+      {
+        "name": "managed",
+        "flag": "managed"
+      },
+      {
+        "name": "network",
+        "flag": "network",
+        "array": true
+      },
+      {
+        "name": "quantity",
+        "flag": "quantity"
+      },
+      {
+        "name": "billingcycle",
+        "flag": "billingcycle"
+      },
+      {
+        "name": "monthlypackage",
+        "flag": "monthlypackage"
+      },
+      {
+        "name": "poweronaftercreate",
+        "flag": "poweronaftercreate"
+      }
+    ]
+  }
+}

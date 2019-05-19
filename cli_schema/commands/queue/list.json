@@ -1,0 +1,38 @@
+{
+  "use": "list",
+  "short": "List all tasks in queue",
+  "run": {
+    "cmd": "getList",
+    "path": "/svc/queue",
+    "method": "listQueue",
+    "fields": [
+      {
+        "name": "id",
+        "number": true
+      },
+      {
+        "name": "commandInfo"
+      },
+      {
+        "name": "dtComplete"
+      },
+      {
+        "name": "dtCreate"
+      },
+      {
+        "name": "dtExecute"
+      },
+      {
+        "name": "exitCode",
+        "number": true
+      },
+      {
+        "name": "progress",
+        "number": true
+      },
+      {
+        "name": "serviceName"
+      }
+    ]
+  }
+}

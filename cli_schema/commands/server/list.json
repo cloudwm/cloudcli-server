@@ -1,0 +1,23 @@
+{
+  "use": "list",
+  "short": "List servers",
+  "run": {
+    "cmd": "getList",
+    "path": "/service/servers",
+    "method": "listServers",
+    "fields": [
+      {
+        "name": "id"
+      },
+      {
+        "name": "name"
+      },
+      {
+        "name": "datacenter"
+      },
+      {
+        "name": "power"
+      }
+    ]
+  }
+}
