@@ -54,7 +54,7 @@ docker exec -it cloudcli-server-dev composer install
 Start the cloudcli test server which can be used for debugging without performing any actions:
 
 ```
-docker exec -e CLOUDCLI_PROVIDER=test -it cloudcli-server-dev php artisan serve --host=0.0.0.0
+docker exec -e APP_DEBUG=true -e CLOUDCLI_PROVIDER=test -it cloudcli-server-dev php artisan serve --host=0.0.0.0
 ```
 
 Open a new terminal and run cloudcli, connecting to the test server:
@@ -66,6 +66,6 @@ cloudcli --api-server http://localhost:8000 server list
 Start a proxy server which forwards requests to a compatible API server
 
 ```
-docker exec -e CLOUDCLI_API_SERVER=http://server.example.com -e CLOUDCLI_PROVIDER=proxy \
+docker exec -e APP_DEBUG=true -e CLOUDCLI_API_SERVER=http://server.example.com -e CLOUDCLI_PROVIDER=proxy \
             -it cloudcli-server-dev php artisan serve --host=0.0.0.0
 ``` 
