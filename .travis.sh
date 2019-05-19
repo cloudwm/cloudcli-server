@@ -7,6 +7,7 @@ CLOUDCLI_VERSION=v0.1.1
 if [ "${1}" == "script" ]; then
     docker pull ${DOCKER_IMAGE}:latest
     ! docker build --cache-from ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:${TRAVIS_COMMIT} . && exit 1
+    docker push ${DOCKER_IMAGE}:${TRAVIS_COMMIT}
     echo "Running cloudcli tests"
     docker run -d --sig-proxy=false -e CLOUDCLI_PROVIDER=proxy -e CLOUDCLI_API_SERVER=$TEST_API_SERVER -p 8080:80 ${DOCKER_IMAGE}:${TRAVIS_COMMIT}
     sleep 5
