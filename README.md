@@ -22,7 +22,7 @@ Run cloudcli using this server:
 cloudcli --api-server http://localhost:8080 init
 ```  
 
-see [cloudcli README](https://github.com/OriHoch/cloudcli/blob/master/README.md) for cloudcli configuration and usage.
+see [cloudcli README](https://github.com/cloudwm/cloudcli/blob/master/README.md) for cloudcli configuration and usage.
 
 ## Running the server for development
 
