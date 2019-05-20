@@ -69,3 +69,21 @@ Start a proxy server which forwards requests to a compatible API server
 docker exec -e APP_DEBUG=true -e CLOUDCLI_API_SERVER=http://server.example.com -e CLOUDCLI_PROVIDER=proxy \
             -it cloudcli-server-dev php artisan serve --host=0.0.0.0
 ``` 
+
+## Deployment to Kubernetes using Rancher
+
+Log-in to Rancher and create a new workload:
+
+* Name: `cloudcli-server`
+* Workload Type: Scalable deployment of `1` pods (should be possible to increase if needed)
+* Docker Image: `cloudwm/cloudcli-server@sha256:290d67fa7969a0c506f5497804e6371d86760cbd61f89b68043ff3967db3c39c`
+  * travis-ci builds a docker image on every push to master
+  * you can get an image hash by looking at the job log
+* Port Mapping:
+  * Publish the container port: 80
+  * Protocol: TCP
+  * As a: `Cluster IP (Internal only)`
+  * On listening port: same as container port
+* Environment variables:
+  * `CLOUDCLI_API_SERVER` = `https://api.example.com`
+  * `CLOUDCLI_PROVIDER` = `proxy`
