@@ -70,6 +70,9 @@ class ProxyServerPostProcessingMethods
             $diskSizeGB[$disk_id] = $disk["size"];
         }
         ksort($diskSizeGB);
+        $useSimpleNetworking = false;
+        $useSimpleWan = false;
+        $useSimpleLan = false;
         $netIps = [];
         $netModes = [];
         $netNames = [];
@@ -80,11 +83,12 @@ class ProxyServerPostProcessingMethods
             $network_name = strtolower(trim(Arr::get($network, "name", "")));
             if (empty($network_name)) {throw new ProxyServerInvalidArgumentException("network name");}
             if ($network_name == "wan") {
+                $netNames[$network_id] = "auto";
                 $netModes[$network_id] = "wan";
             } else {
+                $netNames[$network_id] = $network_name;
                 $netModes[$network_id] = "lan";
             }
-            $netNames[$network_id] = $network_name;
             $netIps[$network_id] = Arr::get($network, "ip", "auto");
             $netSubnets[$network_id] = "";
             $netPrefixes[$network_id] = "";
@@ -128,10 +132,10 @@ class ProxyServerPostProcessingMethods
             "backup" => $backup,
             "billingMode" => $billingMode,
             "trafficPackage" => $trafficPackage,
-            "useSimpleNetworking" => false,
+            "useSimpleNetworking" => $useSimpleNetworking,
             "powerOnCompletion" => $poweroncompletion,
-            "useSimpleWan" => false,
-            "useSimpleLan" => false,
+            "useSimpleWan" => $useSimpleWan,
+            "useSimpleLan" => $useSimpleLan,
             "netModes" => $netModes,
             "netNames" => $netNames,
             "netSubnets" => $netSubnets,
