@@ -56,7 +56,7 @@ class ProxyServerPost
         }
         foreach ($fieldValues as $fieldName => $value) {
             $runField = Arr::get($runFields, $fieldName);
-            if ($runField) {
+            if ($runField && Arr::has($runField, "flag")) {
                 $flag = $flags[$runField["flag"]];
                 if (empty($value)) {
                     if (Arr::get($flag, "required")) {

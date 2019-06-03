@@ -1,0 +1,62 @@
+{
+  "use": "info",
+  "short": "Get server overview/information",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching multiple servers"
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/service/server",
+    "method": "serversInfo",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "serverPath": "/service/server/<id>",
+    "serverMethod": "GET",
+    "fields": [
+      {
+        "name": "id",
+        "flag": "id"
+      },
+      {
+        "name": "name",
+        "flag": "name"
+      },
+      {
+        "name": "datacenter"
+      },
+      {
+        "name": "power"
+      },
+      {
+        "name": "cpu"
+      },
+      {
+        "name": "ram"
+      },
+      {
+        "name": "diskSizes"
+      },
+      {
+        "name": "networks"
+      },
+      {
+        "name": "billing"
+      },
+      {
+        "name": "traffic"
+      },
+      {
+        "name": "managed"
+      },
+      {
+        "name": "backup"
+      }
+    ]
+  }
+}

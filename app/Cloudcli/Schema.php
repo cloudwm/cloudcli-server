@@ -92,6 +92,7 @@ class Schema {
                         self::getSchemaPart("commands/server/power", ["use" => "off", "short" => "Off"]),
                         self::getSchemaPart("commands/server/options", $context),
                         self::getSchemaPart("commands/server/create", $context),
+                        self::getSchemaPart("commands/server/info", $context),
                     ]
                 ];
 

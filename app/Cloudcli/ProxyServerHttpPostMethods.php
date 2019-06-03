@@ -114,19 +114,25 @@ class ProxyServerHttpPostMethods
                         "message" => "Error response from server", $responses,
                         "responses" => $responses
                     ];
-                } elseif (is_array($response)) {
-                    foreach ($response as $commandId) {
-                        $commandIds[] = "$commandId";
+                } elseif ($httpMethod != "GET") {
+                    if (is_array($response)) {
+                        foreach ($response as $commandId) {
+                            $commandIds[] = "$commandId";
+                        }
+                    } else {
+                        return [
+                            "error" => true,
+                            "message" => "Failed to parse command IDs from server response",
+                            "responses" => $responses
+                        ];
                     }
-                } else {
-                    return [
-                        "error" => true,
-                        "message" => "Failed to parse command IDs from server response",
-                        "responses" => $responses
-                    ];
                 }
             }
-            return $commandIds;
+            if ($httpMethod == "GET") {
+                return $responses;
+            } else {
+                return $commandIds;
+            }
         }
     }
 
@@ -165,7 +171,14 @@ class ProxyServerHttpPostMethods
                     }
                 }
             }
-            $res["message"] = implode('. ', $messages);
+            if (Arr::get($res, "json_decode_error")) {
+                $messages[] = "json decode error: " . $res["json_decode_error"];
+            }
+            if (count($messages) > 0) {
+                $res["message"] = implode('. ', $messages);
+            }
+            return $res;
+        } elseif ($httpMethod == "GET") {
             return $res;
         } elseif (is_int($res) || is_string($res)) {
             return ["$res"];

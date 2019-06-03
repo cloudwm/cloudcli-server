@@ -26,6 +26,10 @@ class ProxyServer extends BaseServer {
         return $this->get($request, $command);
     }
 
+    function serversInfo($request, $command) {
+        return $this->post($request, $command);
+    }
+
     function getServerOptions($request, $command) {
         return $this->get($request, $command);
     }
