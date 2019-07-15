@@ -13,7 +13,7 @@
   ],
   "run": {
     "cmd": "post",
-    "path": "/service/server",
+    "path": "/service/server/info",
     "method": "serversInfo",
     "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
     "serverPath": "/service/server/<id>",
