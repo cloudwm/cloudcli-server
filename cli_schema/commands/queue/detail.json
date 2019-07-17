@@ -35,7 +35,8 @@
       {
         "name": "status",
         "wait": "complete",
-        "waitPrintField": "log"
+        "waitPrintField": "log",
+        "waitError": "error"
       },
       {
         "name": "server"
