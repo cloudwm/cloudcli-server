@@ -88,8 +88,9 @@ class Schema {
                     "commands" => [
                         self::getSchemaPart("commands/server/list", $context),
                         self::getSchemaPart("commands/server/terminate", $context),
-                        self::getSchemaPart("commands/server/power", ["use" => "on", "short" => "On"]),
-                        self::getSchemaPart("commands/server/power", ["use" => "off", "short" => "Off"]),
+                        self::getSchemaPart("commands/server/power", ["use" => "poweron", "short" => "Power On", "power" => "on"]),
+                        self::getSchemaPart("commands/server/power", ["use" => "poweroff", "short" => "Power Off", "power" => "off"]),
+                        self::getSchemaPart("commands/server/power", ["use" => "reboot", "short" => "Reboot", "power" => "restart"]),
                         self::getSchemaPart("commands/server/options", $context),
                         self::getSchemaPart("commands/server/create", $context),
                         self::getSchemaPart("commands/server/info", $context),

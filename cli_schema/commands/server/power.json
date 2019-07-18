@@ -1,11 +1,11 @@
 {
   "__comments__": [
-    "This template is used for both power on and off operations",
-    "use = on / off",
+    "This template is used for power operations: poweron, poweroff and reboot operations",
+    "use = poweron / poweroff / reboot",
     "short = On / Off"
   ],
-  "use": "power<< use >>",
-  "short": "Power << short >> server/s",
+  "use": "<< use >>",
+  "short": "<< short >> server/s",
   "wait": true,
   "flags": [
     {
@@ -24,8 +24,8 @@
   ],
   "run": {
     "cmd": "post",
-    "path": "/service/server/power<< use >>",
-    "method": "power<< use >>Server",
+    "path": "/service/server/<< use >>",
+    "method": "<< use >>Server",
     "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
     "serverPath": "/service/server/<id>/power",
     "serverMethod": "PUT",
@@ -42,7 +42,7 @@
     "serverFields": [
       {
         "name": "power",
-        "value": "<< use >>"
+        "value": "<< power >>"
       }
     ]
   }
