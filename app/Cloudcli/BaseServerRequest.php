@@ -15,6 +15,7 @@ class BaseServerRequest {
         try {
             $res = call_user_func([$server, $command['method']], $request, $command);
         } catch (Exception $e) {
+            \Log::error($e->getTraceAsString());
             $res = [
                 "error" => true,
                 "message" => "Failed to run command method (${command['method']})"

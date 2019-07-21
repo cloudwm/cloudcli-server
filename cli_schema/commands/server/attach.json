@@ -1,0 +1,35 @@
+{
+  "use": "attach",
+  "aliases": ["connect"],
+  "short": "Connect to the server via SSH",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "password",
+      "usage": "The server SSH password."
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/service/server/ssh",
+    "method": "sshServer",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "fields": [
+      {
+        "name": "id",
+        "flag": "id"
+      },
+      {
+        "name": "name",
+        "flag": "name"
+      }
+    ]
+  }
+}

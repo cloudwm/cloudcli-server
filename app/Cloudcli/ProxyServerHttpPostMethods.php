@@ -9,6 +9,7 @@ use GuzzleHttp\RequestOptions;
 use http\Exception\InvalidArgumentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ProxyServerHttpPostMethods
@@ -76,6 +77,15 @@ class ProxyServerHttpPostMethods
             throw new ProxyServerGetServerIdsException("Missing server 'id' / 'name'");
         } elseif (!empty($idValue)) {
             $serverIds = [$idValue];
+        } elseif ($command["method"] == "sshServer") {
+            $serversInfo = self::_getServerIdsAndIpsFromName($request, $nameValue, $context, $serverNames);
+            if (count($serversInfo) > 1) {
+                return [
+                    "error" => true,
+                    "message" => "Too many matching servers (name='$nameValue')"
+                ];
+            }
+            $serverIds = [$serversInfo[0]["id"]];
         } else {
             $serverIds = self::_getServerIdsFromName($request, $nameValue, $context, $serverNames);
         }
@@ -85,7 +95,16 @@ class ProxyServerHttpPostMethods
                 "message" => "No servers found (name='$nameValue')"
             ];
         }
-        if ($request->input('dryrun')) {
+        if ($command["method"] == "sshServer") {
+            if (empty($serversInfo[0]["externalIp"])) {
+                return [
+                    "error" => true,
+                    "message" => "No external IP for server name $nameValue"
+                ];
+            } else {
+                return $serversInfo;
+            }
+        } elseif ($request->input('dryrun')) {
             return [
                 "dryrun" => true,
                 "server-names" => $serverNames
@@ -207,6 +226,39 @@ class ProxyServerHttpPostMethods
             }
         }
         return $serverIds;
+    }
+
+    static function getExternalNetworkIp($network) {
+        if (Str::startswith(Arr::get($network, "network", ""), "wan-")) {
+            foreach (Arr::get($network, "ips", []) as $ip) {
+                if (!empty($ip)) {
+                    return $ip;
+                }
+            }
+        }
+        return null;
+    }
+
+    static function _getServerIdsAndIpsFromName(Request $request, $name, $context, &$serverNames) {
+        $serversInfo = [];
+        $servers = call_user_func($context['handleInternalRequest'], $request, "serversInfo", [
+            "path" => "/service/server/info",
+            "method" => "serversInfo",
+            "schemaCommand" => Schema::getSchemaPart("commands/server/info")
+        ]);
+        foreach ($servers as $server) {
+            $externalIp = null;
+            foreach (Arr::get($server, "networks", []) as $network) {
+                $externalIp = self::getExternalNetworkIp($network);
+                if (!empty($externalIp)) break;
+            }
+            $serversInfo[] = [
+                "id" => $server["id"],
+                "name" => $server["name"],
+                "externalIp" => $externalIp
+            ];
+        }
+        return $serversInfo;
     }
 
 
