@@ -31,103 +31,166 @@ class ProxyServerPost
         }
     }
 
-    static function post(Request $request, $command, $httpMethod=null, $handleInternalRequestCallback=null) {
+    static function getHttpMethod($schemaCommand, $httpMethod) {
         if (empty($httpMethod)) {
-            $httpMethod = Arr::get($command, "schemaCommand.run.serverMethod", "POST");
+            $httpMethod = Arr::get($schemaCommand, "run.serverMethod", "POST");
         }
-        $schemaCommand = $command["schemaCommand"];
+        return $httpMethod;
+    }
+
+    static function getFlags($schemaCommand) {
         $flags = [];
         foreach ($schemaCommand["flags"] as $flag) {
             $flags[$flag["name"]] = $flag;
         }
-        $postMultipart = [];
-        $fieldValues = [];
+        return $flags;
+    }
+
+    static function getRunFields($schemaCommand) {
         $runFields = [];
+        foreach ($schemaCommand["run"]["fields"] as $runField) {
+            $runFields[$runField["name"]] = $runField;
+        }
+        return $runFields;
+    }
+
+    static function getFieldValues(Request $request, $schemaCommand) {
+        $fieldValues = [];
         foreach ($schemaCommand["run"]["fields"] as $runField) {
             $value = $request->input($runField["name"], "");
             if (Arr::get($runField, "bool")) {
                 $value = ($value == "true") ? "1" : "0";
             };
             $fieldValues[$runField["name"]] = $value;
-            $runFields[$runField["name"]] = $runField;
         }
         foreach (Arr::get($schemaCommand, "run.serverFields", []) as $serverField) {
             $fieldValues[$serverField["name"]] = $serverField["value"];
         }
+        return $fieldValues;
+    }
+
+    static function getPostMultipartArrayField($postMultipart, $value, $flag, $schemaCommand, $runField) {
+        $items = [];
+        $itemsWithoutId = [];
+        foreach (explode(" ", $value) as $keyvalues) {
+            $dictValue = [];
+            foreach (explode(",", $keyvalues) as $keyvalue) {
+                $keyvalueparts = explode("=", $keyvalue);
+                if (count($keyvalueparts) != 2) {
+                    return [$postMultipart, [$flag["name"], $value, null]];
+                }
+                $dictValue[$keyvalueparts[0]] = $keyvalueparts[1];
+            }
+            if (Arr::has($dictValue, "id")) {
+                if ($dictValue["id"] > 3) {
+                    return [$postMultipart, [$flag["name"], $value, "invalid item id: ".$dictValue["id"]]];
+                } elseif (array_key_exists($dictValue["id"], $items)) {
+                    return [$postMultipart, [$flag["name"], $value, "duplicate item id: ".$dictValue["id"]]];
+                } else {
+                    $items[$dictValue["id"]] = $dictValue;
+                }
+            } else {
+                $itemsWithoutId[] = $dictValue;
+            }
+        }
+        foreach (["0", "1", "2", "3"] as $itemId) {
+            if (! array_key_exists($itemId, $items)) {
+                if (count($itemsWithoutId) > 0) {
+                    $items[$itemId] = array_shift($itemsWithoutId);
+                    $items[$itemId]["id"] = $itemId;
+                }
+            }
+        }
+        if (count($itemsWithoutId) > 0) {
+            return [$postMultipart, [$flag["name"], $value, "invalid item ids"]];
+        }
+        if (Arr::get($schemaCommand["run"], "serverPostMultipartArray")) {
+            $postMultipart[] = [
+                "name" => $runField["name"],
+                "contents" => $items
+            ];
+        } else {
+            foreach ($items as $itemId => $item) {
+                foreach ($item as $k => $v) {
+                    $postMultipart[] = [
+                        "name" => $runField["name"] . "_" . $k . "_" . $itemId,
+                        "contents" => $v
+                    ];
+                }
+            }
+        }
+        return [$postMultipart, null];
+    }
+
+    static function getPostMultipartFieldValue($postMultipart, $fieldName, $value, $runField) {
+        $multiPartField = [
+            "name" => $fieldName,
+            "contents" => $value
+        ];
+        if ($runField && Arr::has($runField, "serverProcessing")) {
+            foreach ($runField["serverProcessing"] as $p) {
+                try {
+                    $multiPartField = call_user_func([ProxyServerFieldProcessingMethods::class, $p["method"]], $multiPartField, $p);
+                } catch (Exception $e) {
+                    return [$postMultipart, [$fieldName, $value, $e->getMessage()]];
+                }
+
+            }
+        }
+        $postMultipart[] = $multiPartField;
+        return [$postMultipart, null];
+    }
+
+    static function getPostMultipart($schemaCommand, $fieldValues, $runFields, $flags) {
+        $postMultipart = [];
+        $errors = [];
         foreach ($fieldValues as $fieldName => $value) {
             $runField = Arr::get($runFields, $fieldName);
             if ($runField && Arr::has($runField, "flag")) {
                 $flag = $flags[$runField["flag"]];
                 if (empty($value)) {
                     if (Arr::get($flag, "required")) {
-                        return self::_getInvalidFlagError($flag["name"]);
+                        // return self::_getInvalidFlagError($flag["name"]);
+                        $errors[] = [$flag["name"], null, null];
+                        continue;
                     } elseif (Arr::has($flag, "default")) {
                         $value = $flag["default"];
                     }
                 }
             }
             if ($runField && Arr::get($runField, "array")) {
-                $items = [];
-                $itemsWithoutId = [];
-                foreach (explode(" ", $value) as $keyvalues) {
-                    $dictValue = [];
-                    foreach (explode(",", $keyvalues) as $keyvalue) {
-                        $keyvalueparts = explode("=", $keyvalue);
-                        if (count($keyvalueparts) != 2) {
-                            return self::_getInvalidFlagError($flag["name"], $value);
-                        }
-                        $dictValue[$keyvalueparts[0]] = $keyvalueparts[1];
-                    }
-                    if (Arr::has($dictValue, "id")) {
-                        if ($dictValue["id"] > 3) {
-                            return self::_getInvalidFlagError($flag["name"], $value, "invalid item id: ".$dictValue["id"]);
-                        } elseif (array_key_exists($dictValue["id"], $items)) {
-                            return self::_getInvalidFlagError($flag["name"], $value, "duplicate item id: ".$dictValue["id"]);
-                        } else {
-                            $items[$dictValue["id"]] = $dictValue;
-                        }
-                    } else {
-                        $itemsWithoutId[] = $dictValue;
-                    }
-                }
-                foreach (["0", "1", "2", "3"] as $itemId) {
-                    if (! array_key_exists($itemId, $items)) {
-                        if (count($itemsWithoutId) > 0) {
-                            $items[$itemId] = array_shift($itemsWithoutId);
-                            $items[$itemId]["id"] = $itemId;
-                        }
-                    }
-                }
-                if (count($itemsWithoutId) > 0) {
-                    return self::_getInvalidFlagError($flag["name"], $value, "invalid item ids");
-                }
-                if (Arr::get($schemaCommand["run"], "serverPostMultipartArray")) {
-                    $postMultipart[] = [
-                        "name" => $runField["name"],
-                        "contents" => $items
-                    ];
-                } else {
-                    foreach ($items as $itemId => $item) {
-                        foreach ($item as $k => $v) {
-                            $postMultipart[] = [
-                                "name" => $runField["name"] . "_" . $k . "_" . $itemId,
-                                "contents" => $v
-                            ];
-                        }
-                    }
-                }
+                list($postMultipart, $err) = self::getPostMultipartArrayField($postMultipart, $value, $flag, $schemaCommand, $runField);
             } else {
-                $multiPartField = [
-                    "name" => $fieldName,
-                    "contents" => $value
-                ];
-                if ($runField && Arr::has($runField, "serverProcessing")) {
-                    foreach ($runField["serverProcessing"] as $p) {
-                        $multiPartField = call_user_func([ProxyServerFieldProcessingMethods::class, $p["method"]], $multiPartField, $p);
-                    }
-                }
-                $postMultipart[] = $multiPartField;
+                list($postMultipart, $err) = self::getPostMultipartFieldValue($postMultipart, $fieldName, $value, $runField);
             }
+            if ($err) {
+                $errors[] = $err;
+                continue;
+            }
+        }
+        return [$postMultipart, $errors];
+    }
+
+    static function runServerPostProcessing($schemaCommand, $postMultipart, $context) {
+        if (Arr::has($schemaCommand["run"], "serverPostProcessing")) {
+            foreach ($schemaCommand["run"]["serverPostProcessing"] as $p) {
+                $postMultipart = call_user_func([ProxyServerPostProcessingMethods::class, $p["method"]], $postMultipart, $p, $context);
+            }
+        }
+        return $postMultipart;
+    }
+
+    static function post(Request $request, $command, $httpMethod=null, $handleInternalRequestCallback=null) {
+        $schemaCommand = $command["schemaCommand"];
+        $httpMethod = self::getHttpMethod($schemaCommand, $httpMethod);
+        $flags = self::getFlags($schemaCommand);
+        $runFields = self::getRunFields($schemaCommand);
+        $fieldValues = self::getFieldValues($request, $schemaCommand);
+        list($postMultipart, $errors) = self::getPostMultipart($schemaCommand, $fieldValues, $runFields, $flags);
+        if (count($errors) > 0) {
+            // TODO: output multiple errors
+            list($name, $value, $message) = $errors[0];
+            return self::_getInvalidFlagError($name, $value, $message);
         }
         $context = [
             "request" => $request,
@@ -137,11 +200,7 @@ class ProxyServerPost
             "flags" => $flags,
             "handleInternalRequest" => $handleInternalRequestCallback
         ];
-        if (Arr::has($schemaCommand["run"], "serverPostProcessing")) {
-            foreach ($schemaCommand["run"]["serverPostProcessing"] as $p) {
-                $postMultipart = call_user_func([ProxyServerPostProcessingMethods::class, $p["method"]], $postMultipart, $p, $context);
-            }
-        }
+        $postMultipart = self::runServerPostProcessing($schemaCommand, $postMultipart, $context);
         $postMethod = Arr::get($schemaCommand["run"], "serverPostMethod", "returnProxyHttpPostResponse");
         return call_user_func([ProxyServerHttpPostMethods::class, $postMethod], $request, $httpMethod, $command, $postMultipart, $context);
     }

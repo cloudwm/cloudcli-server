@@ -2,41 +2,59 @@
   "use": "create",
   "short": "Create a server",
   "wait": true,
+  "interactive": true,
   "dont-sort-flags": true,
   "flags": [
     {
+      "name": "interactive",
+      "usage": "Create server in interactive mode",
+      "bool": true
+    },
+    {
       "name": "name",
       "usage": "Server name (a-zA-Z0-9()_-). (must be at least 4 characters long, mandatory)",
-      "required": true
+      "long-name": "server name",
+      "required": true,
+      "validate-regex": "[a-zA-Z0-9()_-]{4,}"
     },
     {
       "name": "datacenter",
       "usage": "Server datacenter (EU, US-NY2, AS.. see server options subcommand). (mandatory)",
-      "required": true
+      "required": true,
+      "selectfrom-serveroption": "datacenter"
     },
     {
       "name": "image",
       "usage": "Server image name or image ID (see server options subcommand). (mandatory)",
-      "required": true
+      "required": true,
+      "selectfrom-serveroption": "image"
     },
     {
       "name": "cpu",
       "usage": "CPU count and type. (optional, default: 1B)",
-      "default": "1B"
+      "default": "1B",
+      "selectfrom-serveroption": "cpu"
     },
     {
       "name": "ram",
       "usage": "Size of server ram in MiB. (optional, default: 1024)",
-      "default": "1024"
+      "default": "1024",
+      "selectfrom-serveroption": "ram"
     },
     {
       "name": "disk",
       "array": true,
       "usage": "Configure Persistent Disks, Up to 4 disks allowed. (at least 1 is mandatory)\n--disk id=ID,size=SIZE --disk <DISK2>..\nID: first disk # is 0. (optional, default is auto-incremented starting from 0)\nSIZE: in GiB. (optional, defaults to one 20GB disk)",
       "fields": [
-        {"name": "id"}, {"name": "size"}
+        {
+          "name": "id"
+        },
+        {
+          "name": "size"
+        }
       ],
-      "default": "id=0,size=20"
+      "default": "id=0,size=20",
+      "selectfrom-serveroption": "disk"
     },
     {
       "name": "network",
@@ -45,12 +63,15 @@
       "fields": [
         {"name": "id"}, {"name": "name"}, {"name": "ip"}
       ],
-      "default": "id=0,name=wan,ip=auto"
+      "default": "id=0,name=wan,ip=auto",
+      "selectfrom-serveroption": "network"
     },
     {
       "name": "password",
       "usage": "Server password (a-z, A-Z, 0-9, !@#$^&*()~). (must be 10-20 characters long with at least 1 capital letter, 1 small letter and 1 digit, mandatory)",
-      "required": true
+      "required": true,
+      "validate-regex": "[a-zA-Z0-9!@#$^&*()~)]{10,20}",
+      "validate-password": true
     },
     {
       "name": "dailybackup",
