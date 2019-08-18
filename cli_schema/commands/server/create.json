@@ -102,7 +102,7 @@
       "name": "monthlypackage",
       "usage": "Monthly billing cycle package (see server options subcommand). (optional in monthly billing cycle, default: t5000)",
       "default": "t5000",
-        "selectfrom-serveroption": "traffic"
+      "selectfrom-serveroption": "traffic"
     },
     {
       "name": "poweronaftercreate",
@@ -110,7 +110,11 @@
       "default": "yes",
       "validate-boolean": true
     },
-    "<< getSchemaPart flags/wait >>"
+    "<< getSchemaPart flags/wait >>",
+    {
+      "name": "ssh-key",
+      "usage": "Path to public key file, adds to server authorized keys after create is done. (requires --wait)"
+    }
   ],
   "run": {
     "cmd": "post",
