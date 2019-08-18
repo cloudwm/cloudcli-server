@@ -76,32 +76,39 @@
     {
       "name": "dailybackup",
       "usage": "Set Daily Backup (yes | no). (optional, default: no)",
-      "default": "no"
+      "default": "no",
+      "validate-boolean": true
     },
     {
       "name": "managed",
       "usage": "Set Managed Hosting Services (yes | no). (optional, default: no)",
-      "default": "no"
+      "default": "no",
+      "validate-boolean": true
     },
     {
       "name": "quantity",
       "usage": "Number of servers to create, up to 50 servers. (optional, default: 1)",
-      "default": "1"
+      "default": "1",
+      "validate-integer-min": 1,
+      "validate-integer-max": 50
     },
     {
       "name": "billingcycle",
       "usage": "Servers' Billing Cycle. (hourly | monthly) (optional, default: hourly)",
-      "default": "hourly"
+      "default": "hourly",
+      "validate-values": ["hourly", "monthly"]
     },
     {
       "name": "monthlypackage",
       "usage": "Monthly billing cycle package (see server options subcommand). (optional in monthly billing cycle, default: t5000)",
-      "default": "t5000"
+      "default": "t5000",
+        "selectfrom-serveroption": "traffic"
     },
     {
       "name": "poweronaftercreate",
       "usage": "Power on server after server created. (optional, default: yes)",
-      "default": "yes"
+      "default": "yes",
+      "validate-boolean": true
     },
     "<< getSchemaPart flags/wait >>"
   ],

@@ -30,3 +30,8 @@ foreach ($cloudcli_server->getServerCommands() as $command) {
         });
     }
 }
+
+Route::get("/svc", function(Request $request) use (&$cloudcli_server) {
+    return $cloudcli_server->handleSvcRequest($request);
+});
+

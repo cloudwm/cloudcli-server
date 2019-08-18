@@ -3,9 +3,20 @@
 namespace App\Cloudcli;
 
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 class BaseServerRequest {
+
+    static function handleSvcRequest(Request $request, $server) {
+        $path = $request->get("path");
+        if (strpos($path, "serverCreate/datacenterConfiguration/") === 0) {
+            $datacenter = explode("/", $path)[2];
+            return $server->handleDatacenterConfigurationRequest($request, $datacenter);
+        } else {
+            return response()->json(["error" => true], 404);
+        }
+    }
 
     static function handleRequest($request, $command, $server) {
         if ($command["cmd"] == "_") {

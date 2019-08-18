@@ -18,6 +18,10 @@ class BaseServer {
         return BaseServerRequest::handleRequest($request, $command, $this);
     }
 
+    function handleSvcRequest($request) {
+        return BaseServerRequest::handleSvcRequest($request, $this);
+    }
+
     function getServerCommands($schemaCommand=null, $commands=null) {
         return Schema::getServerCommands($schemaCommand, $commands);
     }

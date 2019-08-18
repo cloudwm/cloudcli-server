@@ -62,6 +62,18 @@ class ProxyServer extends BaseServer {
         return $this->_handleInternalRequest($request, $method, $command);
     }
 
+    function handleDatacenterConfigurationRequest($request, $datacenter) {
+        $res = ProxyServerHttp::getHttpClient($request);
+        if ($res["error"]) {
+            return $res;
+        } else {
+            $serverPath = "/svc/serverCreate/datacenterConfiguration/".$datacenter;
+            return ProxyServerHttp::parseClientResponse(
+                $res["client"]->get($serverPath)
+            );
+        }
+    }
+
     function post($request, $command) {
         return ProxyServerPost::post($request, $command, null, [$this, 'handleInternalRequest']);
     }

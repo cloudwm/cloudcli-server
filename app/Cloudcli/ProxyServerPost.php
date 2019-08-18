@@ -188,6 +188,7 @@ class ProxyServerPost
         $fieldValues = self::getFieldValues($request, $schemaCommand);
         list($postMultipart, $errors) = self::getPostMultipart($schemaCommand, $fieldValues, $runFields, $flags);
         if (count($errors) > 0) {
+            \Log::info(var_export($errors, true));
             // TODO: output multiple errors
             list($name, $value, $message) = $errors[0];
             return self::_getInvalidFlagError($name, $value, $message);
