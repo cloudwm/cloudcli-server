@@ -1,7 +1,6 @@
 {
-  "use": "attach",
-  "aliases": ["connect"],
-  "short": "Connect to the server via SSH",
+  "use": "sshkey",
+  "short": "Add an SSH public key to the server authorized keys",
   "flags": [
     {
       "name": "id",
@@ -13,13 +12,19 @@
     },
     {
       "name": "password",
-      "usage": "The server SSH password."
+      "usage": "The server SSH password.",
+      "required": true
+    },
+    {
+      "name": "public-key",
+      "usage": "Path to the public key file",
+      "required": true
     }
   ],
   "run": {
     "cmd": "post",
-    "path": "/service/server/ssh",
-    "method": "sshServer",
+    "path": "/service/server/sshkey",
+    "method": "sshServerKey",
     "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
     "onlyOneServer": true,
     "returnServerInfoWithIP": true,

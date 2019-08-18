@@ -58,6 +58,10 @@ class ProxyServer extends BaseServer {
         return $this->post($request, $command);
     }
 
+    function sshServerKey($request, $command) {
+        return $this->post($request, $command);
+    }
+
     function handleInternalRequest($request, $method, $command=null) {
         return $this->_handleInternalRequest($request, $method, $command);
     }

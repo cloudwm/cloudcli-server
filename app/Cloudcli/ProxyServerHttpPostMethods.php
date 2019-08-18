@@ -77,7 +77,7 @@ class ProxyServerHttpPostMethods
             throw new ProxyServerGetServerIdsException("Missing server 'id' / 'name'");
         } elseif (!empty($idValue)) {
             $serverIds = [$idValue];
-        } elseif ($command["method"] == "sshServer") {
+        } elseif (Arr::get($command, "schemaCommand.run.onlyOneServer", false)) {
             $serversInfo = self::_getServerIdsAndIpsFromName($request, $nameValue, $context, $serverNames);
             if (count($serversInfo) > 1) {
                 return [
@@ -95,7 +95,7 @@ class ProxyServerHttpPostMethods
                 "message" => "No servers found (name='$nameValue')"
             ];
         }
-        if ($command["method"] == "sshServer") {
+        if (Arr::get($command, "schemaCommand.run.returnServerInfoWithIP", false)) {
             if (empty($serversInfo[0]["externalIp"])) {
                 return [
                     "error" => true,
