@@ -1,6 +1,6 @@
 {
   "use": "attach",
-  "aliases": ["connect"],
+  "aliases": ["connect", "ssh"],
   "short": "Connect to the server via SSH",
   "flags": [
     {
@@ -14,6 +14,10 @@
     {
       "name": "password",
       "usage": "The server SSH password."
+    },
+    {
+      "name": "key",
+      "usage": "Private key file to login with."
     }
   ],
   "run": {
