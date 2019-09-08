@@ -1,0 +1,54 @@
+{
+  "use": "description",
+  "short": "Get or set server description",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+        "name": "set",
+        "usage": "Set server description to the given value"
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/description",
+    "method": "serverDescription",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/svc/server/<id>/overview",
+    "serverMethod": "GET",
+    "prePostActions": [
+        {
+            "runIfNotEmpty": ["serverId", "set"],
+            "httpMethod": "PUT",
+            "path": "/svc/server/<serverId>/description",
+            "payload": {"description":  "<set>"}
+        }
+    ],
+    "fields": [
+      {
+        "name": "name",
+        "flag": "name"
+      },
+      {
+        "name": "description"
+      },
+      {
+        "name": "set",
+        "flag": "set",
+        "hide": true
+      }
+    ],
+    "postGetResponsesActions": [
+        {
+            "returnFields": ["name", "description"]
+        }
+    ]
+  }
+}

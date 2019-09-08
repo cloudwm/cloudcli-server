@@ -186,6 +186,9 @@ class ProxyServerPost
         $flags = self::getFlags($schemaCommand);
         $runFields = self::getRunFields($schemaCommand);
         $fieldValues = self::getFieldValues($request, $schemaCommand);
+//        var_dump($flags);
+//        var_dump($runFields);
+//        var_dump($fieldValues);
         list($postMultipart, $errors) = self::getPostMultipart($schemaCommand, $fieldValues, $runFields, $flags);
         if (count($errors) > 0) {
             \Log::info(var_export($errors, true));
@@ -199,6 +202,7 @@ class ProxyServerPost
             "httpMethod" => $httpMethod,
             "schemaCommand" => $schemaCommand,
             "flags" => $flags,
+            "fieldValues" => $fieldValues,
             "handleInternalRequest" => $handleInternalRequestCallback
         ];
         $postMultipart = self::runServerPostProcessing($schemaCommand, $postMultipart, $context);

@@ -60,6 +60,70 @@ class ProxyServerHttpPostMethods
         }
     }
 
+    static function replacePrePostActionContext($value, $prePostActionsContext) {
+        foreach ($prePostActionsContext as $contextK=>$contextV) {
+            $value = str_replace("<".$contextK.">", $contextV, $value);
+        }
+        return $value;
+    }
+
+    static function runPrePostAction(Request $request, $prePostAction, $prePostActionsContext) {
+        $run = false;
+        if (Arr::get($prePostAction, "runIfNotEmpty")) {
+            $anyEmpty = false;
+            foreach ($prePostAction["runIfNotEmpty"] as $k) {
+                if (!Arr::get($prePostActionsContext, $k)) {
+                    $anyEmpty = true;
+                }
+            }
+            if (!$anyEmpty) {
+                $run = true;
+            }
+        }
+        if ($run) {
+            $httpMethod = Arr::get($prePostAction, "httpMethod");
+            if ($httpMethod) {
+                $requestRes = ProxyServerHttp::getHttpClient($request);
+                if ($requestRes["error"]) {
+                    return $requestRes;
+                } else {
+                    $formParams = [];
+                    foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
+                        $formParams[$payloadK] = self::replacePrePostActionContext($payloadV, $prePostActionsContext);
+                    }
+                    $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
+                    $res = $requestRes["client"]->request($httpMethod, $path, ["form_params" => $formParams]);
+                    if ($res->getStatusCode() != 200 || $res->getBody() != "") {
+                        \Log::error("Invalid response from prePostActionContext path ".$path.": (".$res->getStatusCode().") ".$res->getBody());
+                        return [
+                            "error" => true,
+                            "status_code" => $res->getStatusCode(),
+                            "message" => "Invalid response"
+                        ];
+                    }
+                };
+            }
+        }
+        return null;
+    }
+
+    static function runPostGetResponsesAction($postGetResponsesAction, $responses, $command) {
+        $returnFields = Arr::get($postGetResponsesAction, "returnFields");
+        if ($returnFields) {
+            $newResponses = [];
+            foreach ($responses as $response) {
+                $newResponse = [];
+                foreach ($response as $k=>$v) {
+                    if (in_array($k, $returnFields)) {
+                        $newResponse[$k] = $v;
+                    }
+                }
+                $newResponses[] = $newResponse;
+            }
+            $responses = $newResponses;
+        }
+        return $responses;
+    }
 
     static function returnProxyHttpMultiServerPostResponse(Request $request, $httpMethod, $command, $postMultipart, $context) {
         $idField = "id";
@@ -110,6 +174,21 @@ class ProxyServerHttpPostMethods
                 "server-names" => $serverNames
             ];
         } else {
+            if (Arr::get($command, "schemaCommand.run.prePostActions")) {
+                $prePostActionsContext = [];
+                foreach ($context["fieldValues"] as $k=>$v) {
+                    $prePostActionsContext[$k] = $v;
+                }
+                if (Arr::get($command, "schemaCommand.run.onlyOneServer")) {
+                    $prePostActionsContext["serverId"] = $serverIds[0];
+                }
+                foreach ($command["schemaCommand"]["run"]["prePostActions"] as $prePostAction) {
+                    $prePostActionRes = self::runPrePostAction($request, $prePostAction, $prePostActionsContext);
+                    if ($prePostActionRes) {
+                        return $prePostActionRes;
+                    }
+                };
+            }
             $responses = [];
             $commandIds = [];
             foreach ($serverIds as $serverId) {
@@ -148,6 +227,11 @@ class ProxyServerHttpPostMethods
                 }
             }
             if ($httpMethod == "GET") {
+                if (Arr::get($command, "schemaCommand.run.postGetResponsesActions")) {
+                    foreach ($command["schemaCommand"]["run"]["postGetResponsesActions"] as $postGetResponsesAction) {
+                        $responses = self::runPostGetResponsesAction($postGetResponsesAction, $responses, $command);
+                    }
+                }
                 return $responses;
             } else {
                 return $commandIds;
