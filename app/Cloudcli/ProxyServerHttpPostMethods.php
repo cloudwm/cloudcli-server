@@ -87,24 +87,70 @@ class ProxyServerHttpPostMethods
                 if ($requestRes["error"]) {
                     return $requestRes;
                 } else {
-                    $formParams = [];
-                    foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
-                        $formParams[$payloadK] = self::replacePrePostActionContext($payloadV, $prePostActionsContext);
+                    if ($httpMethod == "POST") {
+                        $postMultipart = [];
+                        foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
+                            $postMultipart[] = [
+                                "name" => $payloadK,
+                                "contents" => self::replacePrePostActionContext($payloadV, $prePostActionsContext)
+                            ];
+                        }
+                        $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
+                        $res = $requestRes["client"]->request($httpMethod, $path, ['multipart' => $postMultipart]);
+                    } else {
+                        $formParams = [];
+                        foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
+                            $formParams[$payloadK] = self::replacePrePostActionContext($payloadV, $prePostActionsContext);
+                        }
+                        $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
+                        $res = $requestRes["client"]->request($httpMethod, $path, ["form_params" => $formParams]);
                     }
-                    $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
-                    $res = $requestRes["client"]->request($httpMethod, $path, ["form_params" => $formParams]);
-                    if ($res->getStatusCode() != 200 || $res->getBody() != "") {
-                        \Log::error("Invalid response from prePostActionContext path ".$path.": (".$res->getStatusCode().") ".$res->getBody());
-                        return [
-                            "error" => true,
-                            "status_code" => $res->getStatusCode(),
-                            "message" => "Invalid response"
-                        ];
+                    $res = ProxyServerHttp::parseClientResponse($res);
+                    if (Arr::get($res, "error")) {
+                        if (Arr::get($res, "response")) {
+                            return [
+                                "error" => true,
+                                "message" => json_encode($res["response"])
+                            ];
+                        } else {
+                            \Log::error($res);
+                            return [
+                                "error" => true,
+                                "message" => "Unexpected error"
+                            ];
+                        }
                     }
                 };
+                if (Arr::get($prePostAction, "returnsCommandIDOnSuccess")) {
+                    if (is_numeric($res)) {
+                        return $res;
+                    } elseif (Arr::get($res, "cmdId") && is_numeric($res["cmdId"])) {
+                        return $res["cmdId"];
+                    } else {
+                        return [
+                            "error" => true,
+                            "message" => "Unexpected response from server: ".json_encode($res)
+                        ];
+                    }
+                }
             }
         }
         return null;
+    }
+
+    static function recursiveFlattenField($field, $responses) {
+        $newResponses = [];
+        foreach ($responses as $response) {
+            if (Arr::get($response, $field)) {
+                foreach (self::recursiveFlattenField($field, $response[$field]) as $childResponse) {
+                    $childResponse[$field] = null;
+                    $newResponses[] = $childResponse;
+                }
+                $response[$field] = null;
+            }
+            $newResponses[] = $response;
+        }
+        return $newResponses;
     }
 
     static function runPostGetResponsesAction($postGetResponsesAction, $responses, $command) {
@@ -121,6 +167,17 @@ class ProxyServerHttpPostMethods
                 $newResponses[] = $newResponse;
             }
             $responses = $newResponses;
+        }
+        if (Arr::get($postGetResponsesAction, "collapseResponses")) {
+            if (Arr::get($command, "schemaCommand.run.onlyOneServer")) {
+                $responses = $responses[0];
+            } else {
+                throw new Exception("Invalid usage");
+            }
+        }
+        $recursiveFlattenField = Arr::get($postGetResponsesAction, "recursiveFlattenField");
+        if ($recursiveFlattenField) {
+            $responses = self::recursiveFlattenField($recursiveFlattenField, $responses);
         }
         return $responses;
     }
@@ -143,6 +200,9 @@ class ProxyServerHttpPostMethods
             $serverIds = [$idValue];
         } elseif (Arr::get($command, "schemaCommand.run.onlyOneServer", false)) {
             $serversInfo = self::_getServerIdsAndIpsFromName($request, $nameValue, $context, $serverNames);
+            if (Arr::get($serversInfo, "error")) {
+                return $serversInfo;
+            }
             if (count($serversInfo) > 1) {
                 return [
                     "error" => true,
@@ -209,7 +269,7 @@ class ProxyServerHttpPostMethods
                 if (Arr::get($response, "error")) {
                     return [
                         "error" => true,
-                        "message" => "Error response from server", $responses,
+                        "message" => "Error response from server: ".json_encode($responses),
                         "responses" => $responses
                     ];
                 } elseif ($httpMethod != "GET") {
@@ -330,6 +390,9 @@ class ProxyServerHttpPostMethods
             "method" => "serversInfo",
             "schemaCommand" => Schema::getSchemaPart("commands/server/info")
         ]);
+        if (Arr::get($servers, "error")) {
+            return $servers;
+        }
         foreach ($servers as $server) {
             $externalIp = null;
             foreach (Arr::get($server, "networks", []) as $network) {
@@ -337,8 +400,8 @@ class ProxyServerHttpPostMethods
                 if (!empty($externalIp)) break;
             }
             $serversInfo[] = [
-                "id" => $server["id"],
-                "name" => $server["name"],
+                "id" => Arr::get($server, "id"),
+                "name" => Arr::get($server, "name"),
                 "externalIp" => $externalIp
             ];
         }

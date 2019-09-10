@@ -1,0 +1,99 @@
+{
+  "use": "snapshot",
+  "short": "List/manage server snapshots",
+  "wait": true,
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "create",
+      "usage": "Name of a new snapshot to create"
+    },
+    {
+      "name": "delete",
+      "usage": "Snapshot ID to delete"
+    },
+    {
+      "name": "revert",
+      "usage": "Snaptshot ID to revert to"
+    },
+    "<< getSchemaPart flags/wait >>"
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/snapshot",
+    "method": "serverSnapshot",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/service/server/<id>/snapshots",
+    "serverMethod": "GET",
+    "prePostActions": [
+      {
+        "runIfNotEmpty": ["serverId", "create"],
+        "httpMethod": "POST",
+        "path": "/service/server/<serverId>/snapshot",
+        "payload": {"name":  "<create>"},
+        "returnsCommandIDOnSuccess": true
+      },
+      {
+        "runIfNotEmpty": ["serverId", "delete"],
+        "httpMethod": "DELETE",
+        "path": "/service/server/<serverId>/snapshot",
+        "payload": {"snapshotId":  "<delete>"},
+        "returnsCommandIDOnSuccess": true
+      },
+      {
+        "runIfNotEmpty": ["serverId", "revert"],
+        "httpMethod": "PUT",
+        "path": "/service/server/<serverId>/snapshot",
+        "payload": {"snapshotId":  "<revert>"},
+        "returnsCommandIDOnSuccess": true
+      }
+    ],
+    "fields": [
+      {
+        "name": "create",
+        "flag": "create",
+        "hide": true
+      },
+      {
+        "name": "delete",
+        "flag": "delete",
+        "hide": true
+      },
+      {
+        "name": "revert",
+        "flag": "revert",
+        "hide": true
+      },
+      {
+        "name": "id"
+      },
+      {
+        "name": "name",
+        "flag": "name"
+      },
+      {
+        "name": "date"
+      },
+      {
+        "name": "depth"
+      },
+      {
+        "name": "active"
+      }
+    ],
+    "postGetResponsesActions": [
+      {
+        "collapseResponses": true,
+        "recursiveFlattenField": "child"
+      }
+    ]
+  }
+}
