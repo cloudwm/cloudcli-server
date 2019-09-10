@@ -1,0 +1,119 @@
+{
+  "use": "network",
+  "short": "List/manage server networks",
+  "wait": true,
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "add",
+      "usage": "Name of a new or existing VLAN interface to add to the server"
+    },
+    {
+      "name": "ip",
+      "usage": "Required when using --add flag - set the IP address of the added network interface"
+    },
+    {
+      "name": "subnet",
+      "usage": "Required when using --add flag to create a new VLAN - Set the subnet of the network."
+    },
+    {
+      "name": "bits",
+      "usage": "Required when using --add flag to create a new VLAN - Set the subnet bits of the network"
+    },
+    {
+      "name": "disconnect",
+      "usage": "Mac address of a network to disconnect"
+    },
+    {
+      "name": "connect",
+      "usage": "Mac address of a network to connect"
+    },
+    "<< getSchemaPart flags/wait >>"
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/network",
+    "method": "serverNetwork",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/svc/server/<id>/nics",
+    "serverMethod": "GET",
+    "prePostActions": [
+        {
+            "runIfNotEmpty": ["serverId", "add"],
+            "httpMethod": "POST",
+            "path": "/svc/server/<serverId>/nics",
+            "payload": {"network":  "<add>", "ip":  "<ip>", "provision":  false},
+            "returnsCommandIDOnSuccess": true,
+            "addNewNetworkOnNetworkNotFoundError": true
+        },
+        {
+            "runIfNotEmpty": ["serverId", "disconnect"],
+            "httpMethod": "PUT",
+            "postJson": true,
+            "path": "/svc/server/<serverId>/nics",
+            "payload": {"connected": false, "mac": "<disconnect>"},
+            "returnsCommandIDOnSuccess": true
+        },
+        {
+            "runIfNotEmpty": ["serverId", "connect"],
+            "httpMethod": "PUT",
+            "postJson": true,
+            "path": "/svc/server/<serverId>/nics",
+            "payload": {"connected": true, "mac": "<connect>"},
+            "returnsCommandIDOnSuccess": true
+        }
+    ],
+    "fields": [
+      {
+        "name": "add",
+        "flag": "add",
+        "hide": true
+      },
+      {"name":  "ip", "flag":  "ip", "hide":  true},{"name":  "subnet", "flag":  "subnet", "hide":  true},{"name":  "bits", "flag":  "bits", "hide":  true},
+      {
+        "name": "disconnect",
+        "flag": "disconnect",
+        "hide": true
+      },
+      {
+        "name": "connect",
+        "flag": "connect",
+        "hide": true
+      },
+      {
+        "name": "id",
+        "hide": true
+      },
+      {
+        "name": "name",
+        "flag": "name",
+        "hide": true
+      },
+      {
+        "name": "network"
+      },
+      {
+        "name": "ips"
+      },
+      {
+        "name": "connected"
+      },
+      {
+        "name": "mac"
+      }
+    ],
+    "postGetResponsesActions": [
+      {
+          "parseNetworks": true
+      }
+    ]
+  }
+}

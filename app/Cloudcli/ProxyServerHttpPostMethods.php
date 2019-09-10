@@ -62,12 +62,114 @@ class ProxyServerHttpPostMethods
 
     static function replacePrePostActionContext($value, $prePostActionsContext) {
         foreach ($prePostActionsContext as $contextK=>$contextV) {
-            $value = str_replace("<".$contextK.">", $contextV, $value);
+            if (is_string($contextV)) {
+                $value = str_replace("<".$contextK.">", $contextV, $value);
+            }
         }
         return $value;
     }
 
-    static function runPrePostAction(Request $request, $prePostAction, $prePostActionsContext) {
+    static function _preprocessAddNetwork(Request $request, &$prePostActionsContext) {
+        $serverId = $prePostActionsContext['serverId'];
+        $requestRes = ProxyServerHttp::getHttpClient($request);
+        if ($requestRes["error"]) {
+            return $requestRes;
+        } else {
+            $res = $requestRes["client"]->request("GET", "/service/server/" . $serverId);
+            $res = ProxyServerHttp::parseClientResponse($res);
+            if (Arr::get($res, "error")) {
+                \Log::error("_addNewNetwork /service/server: " . json_encode($res));
+                return $res;
+            } else {
+                $datacenter = Arr::get($res, "datacenter");
+                if (!$datacenter) {
+                    return ["error" => true, "message" => "Failed to get server info"];
+                }
+                $prePostActionsContext["datacenter"] = $datacenter;
+                $res = $requestRes["client"]->request("GET", "/svc/networks/" . $datacenter . "/create");
+                $res = ProxyServerHttp::parseClientResponse($res);
+                if (Arr::get($res, "error")) {
+                    \Log::error("_addNewNetwork GET /svc/networks/DATACENTER/create: " . json_encode($res));
+                    return $res;
+                } else {
+                    $prePostActionsContext["baseName"] = Arr::get($res, "name");
+                    $prePostActionsContext["subnetIps"] = Arr::get($res, "subnetIp");
+                    $prePostActionsContext["subnetMasks"] = Arr::get($res, "subnetMask");
+                    $addNetworkName = Arr::get($prePostActionsContext, "add", "");
+                    if (!empty($addNetworkName) && !empty($prePostActionsContext["baseName"]) && !Str::startsWith($addNetworkName, $prePostActionsContext["baseName"])) {
+                        $prePostActionsContext["add"] = $prePostActionsContext["baseName"].$addNetworkName;
+                    }
+                    return null;
+                }
+            }
+        }
+    }
+
+    static function _addNewNetwork(Request $request, $prePostAction, $prePostActionsContext) {
+        $serverId = $prePostActionsContext['serverId'];
+        $requestRes = ProxyServerHttp::getHttpClient($request);
+        if ($requestRes["error"]) {
+            return $requestRes;
+        } else {
+            $datacenter = Arr::get($prePostActionsContext, "datacenter");
+            $baseName = Arr::get($prePostActionsContext, "baseName");
+            $subnetIps = Arr::get($prePostActionsContext, "subnetIps");
+            $subnetMasks = Arr::get($prePostActionsContext, "subnetMasks");
+            if (!$subnetIps || !$subnetMasks || ! $baseName) {
+                return ["error" => true, "message" => "Failed to get available subnet IPs / masks"];
+            } else {
+                $res = $requestRes["client"]->request("POST", "/svc/networks/".$datacenter."/create", [
+                    "json" => [
+                        "dns1" => "",
+                        "dns2" => "",
+                        "gateway" => "",
+                        "name" => str_replace($baseName, "", Arr::get($prePostActionsContext, "add")),
+                        "subnetBit" => Arr::get($prePostActionsContext, "bits"),
+                        "subnetIp" => Arr::get($prePostActionsContext, "subnet")
+                    ]
+                ]);
+                $res = ProxyServerHttp::parseClientResponse($res);
+                if (Arr::get($res, "error") && Arr::get($res, "status_code") != 200) {
+                    $msg = "\nFailed to create VLAN network, please check the bits and subnet flags:\n\n";
+                    $msg .= "Available subnets: ".json_encode($subnetIps)."\n";
+                    $msg .= "Available bits: ".json_encode($subnetMasks)."\n\n";
+                    if (Arr::get($res, "response")) {
+                        $msg .= json_encode($res["response"]);
+                    } else {
+                        $msg .= json_encode($res);
+                    }
+                    return ["error" => true, "message" => $msg];
+                } else {
+                    $res = $requestRes["client"]->request("POST", "/svc/server/".$serverId."/nics", [
+                        "json" => [
+                            "ip" => Arr::get($prePostActionsContext, "ip"),
+                            "network" => Arr::get($prePostActionsContext, "add"),
+                            "provision" => true
+                        ]
+                    ]);
+                    $res = ProxyServerHttp::parseClientResponse($res);
+                    if (Arr::get($res, "error")) {
+                        $msg = (Arr::get($res, "response")) ? ": ".json_encode($res["response"]) : "";
+                        return [
+                            "error" => true,
+                            "message" => "Failed to attach VLAN to server".$msg
+                        ];
+                    } elseif (is_numeric($res)) {
+                        return $res;
+                    } elseif (Arr::get($res, "cmdId") && is_numeric($res["cmdId"])) {
+                        return $res["cmdId"];
+                    } else {
+                        return [
+                            "error" => true,
+                            "message" => "Unexpected response from server: ".json_encode($res)
+                        ];
+                    }
+                }
+            }
+        }
+    }
+
+    static function runPrePostAction(Request $request, $prePostAction, &$prePostActionsContext) {
         $run = false;
         if (Arr::get($prePostAction, "runIfNotEmpty")) {
             $anyEmpty = false;
@@ -87,7 +189,24 @@ class ProxyServerHttpPostMethods
                 if ($requestRes["error"]) {
                     return $requestRes;
                 } else {
-                    if ($httpMethod == "POST") {
+                    if (Arr::get($prePostAction, "addNewNetworkOnNetworkNotFoundError")) {
+                        $res = self::_preprocessAddNetwork($request, $prePostActionsContext);
+                        if (!empty($res)) {
+                            return $res;
+                        }
+                    }
+                    if (Arr::get($prePostAction, "postJson")) {
+                        $postJson = [];
+                        foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
+                            $value = $payloadV;
+                            if (is_string($value)) {
+                                $value = self::replacePrePostActionContext($value, $prePostActionsContext);
+                            }
+                            $postJson[$payloadK] = $value;
+                        }
+                        $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
+                        $res = $requestRes["client"]->request($httpMethod, $path, ['json' => $postJson]);
+                    } elseif ($httpMethod == "POST") {
                         $postMultipart = [];
                         foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
                             $postMultipart[] = [
@@ -108,6 +227,11 @@ class ProxyServerHttpPostMethods
                     $res = ProxyServerHttp::parseClientResponse($res);
                     if (Arr::get($res, "error")) {
                         if (Arr::get($res, "response")) {
+                            \Log::error($res);
+                            if (Arr::get($prePostAction, "addNewNetworkOnNetworkNotFoundError") && Arr::get($res, "response.errors.0.info") == "selected network was not found") {
+                                // selected network was not found
+                                return self::_addNewNetwork($request, $prePostAction, $prePostActionsContext);
+                            }
                             return [
                                 "error" => true,
                                 "message" => json_encode($res["response"])
@@ -178,6 +302,13 @@ class ProxyServerHttpPostMethods
         $recursiveFlattenField = Arr::get($postGetResponsesAction, "recursiveFlattenField");
         if ($recursiveFlattenField) {
             $responses = self::recursiveFlattenField($recursiveFlattenField, $responses);
+        }
+        if (Arr::get($postGetResponsesAction, "parseNetworks")) {
+            if (count($responses) != 1) {
+                throw new Exception("Unexpected response: ".json_encode($responses));
+            }
+            $response = $responses[0];
+            $responses = $response["nics"];
         }
         return $responses;
     }

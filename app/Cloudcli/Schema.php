@@ -99,6 +99,7 @@ class Schema {
                         self::getSchemaPart("commands/server/sshkey", $context),
                         self::getSchemaPart("commands/server/description", $context),
                         self::getSchemaPart("commands/server/snapshot", $context),
+                        self::getSchemaPart("commands/server/network", $context),
                     ]
                 ];
 
