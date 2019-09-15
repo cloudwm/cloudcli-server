@@ -1,0 +1,98 @@
+{
+  "use": "disk",
+  "short": "List/manage server disks",
+  "wait": true,
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "add",
+      "usage": "Size in GB of new disk to add"
+    },
+    {
+      "name": "remove",
+      "usage": "ID of disk to remove"
+    },
+    {
+      "name": "resize",
+      "usage": "ID of disk to resize, must set size flag as well for the new size"
+    },
+    {
+      "name": "size",
+      "usage": "size in GB to resize the disk to, required only when using resize flag"
+    },
+    "<< getSchemaPart flags/wait >>"
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/disk",
+    "method": "serverDisk",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/service/server/<id>",
+    "serverMethod": "GET",
+    "prePostActions": [
+        {
+            "runIfNotEmpty": ["serverId", "add"],
+            "httpMethod": "POST",
+            "path": "/service/server/<serverId>/disk",
+            "payload": {"size":  "<add>"},
+            "returnsCommandIDOnSuccess": true
+        },
+        {
+            "runIfNotEmpty": ["serverId", "remove"],
+            "httpMethod": "DELETE",
+            "path": "/service/server/<serverId>/disk/remove",
+            "payload": {"index":  "<remove>", "confirm": 1},
+            "returnsCommandIDOnSuccess": true
+        },
+        {
+            "runIfNotEmpty": ["serverId", "resize", "size"],
+            "httpMethod": "PUT",
+            "path": "/service/server/<serverId>/disk",
+            "payload": {"index":  "<resize>", "size": "<size>", "provision": 1},
+            "returnsCommandIDOnSuccess": true
+        }
+    ],
+    "fields": [
+      {
+        "name": "add",
+        "flag": "add",
+        "hide": true
+      },
+      {
+        "name": "remove",
+        "flag": "remove",
+        "hide": true
+      },
+      {
+        "name": "resize",
+        "flag": "resize",
+        "hide": true
+      },
+      {
+        "name": "id"
+      },
+      {
+        "name": "name",
+        "flag": "name",
+        "hide": true
+      },
+      {
+        "name": "size",
+        "flag": "size"
+      }
+    ],
+    "postGetResponsesActions": [
+        {
+            "parseDisks": true
+        }
+    ]
+  }
+}

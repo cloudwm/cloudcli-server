@@ -174,7 +174,7 @@ class ProxyServerHttpPostMethods
         if (Arr::get($prePostAction, "runIfNotEmpty")) {
             $anyEmpty = false;
             foreach ($prePostAction["runIfNotEmpty"] as $k) {
-                if (!Arr::get($prePostActionsContext, $k)) {
+                if (!Arr::get($prePostActionsContext, $k) && Arr::get($prePostActionsContext, $k) !== "0") {
                     $anyEmpty = true;
                 }
             }
@@ -309,6 +309,19 @@ class ProxyServerHttpPostMethods
             }
             $response = $responses[0];
             $responses = $response["nics"];
+        }
+        if (Arr::get($postGetResponsesAction, "parseDisks")) {
+            if (count($responses) != 1) {
+                throw new Exception("Unexpected response: ".json_encode($responses));
+            }
+            $response = [];
+            foreach ($responses[0]["diskSizes"] as $k => $diskSize) {
+                $response[] = [
+                    "id" => $k,
+                    "size" => $diskSize."gb"
+                ];
+            };
+            $responses = $response;
         }
         return $responses;
     }
