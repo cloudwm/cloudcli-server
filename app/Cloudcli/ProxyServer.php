@@ -46,6 +46,72 @@ class ProxyServer extends BaseServer {
         return $this->post($request, $command);
     }
 
+    function serverConfigure($request, $command) {
+        $id = $request->input('id', null);
+        $name = $request->input('name', null);
+        $cpu = $request->input('cpu', null);
+        $ram = $request->input('ram', null);
+        $numCommands = 0;
+        if (!empty($cpu)) $numCommands++;
+        if (!empty($ram)) $numCommands++;
+        if ($numCommands < 1) {
+            return ["error" => true, "message" => "Please choose a configuration flag"];
+        } elseif ($numCommands > 1) {
+            return ["error" => true, "message" => "Please choose only 1 configuration flag at a time"];
+        }
+        if ((empty($id) && empty($name)) || (!empty($id) && !empty($name))) {
+            return ["error" => true, "message" => "Please choose --id or --name flags (but not both)"];
+        }
+        if (!empty($name)) {
+            $serverNames = [];
+            $serverIds = ProxyServerHttpPostMethods::getServerIdsFromName($request, $name, ["handleInternalRequest" => [$this, "handleInternalRequest"]], $serverNames);
+            if (count($serverIds) < 1) {
+                return ["error" => true, "message" => "--name flag did not match any servers"];
+            } elseif (count($serverIds) > 1) {
+                return ["error" => true, "message" => "--name flag must match a single server"];
+            }
+            $id = $serverIds[0];
+        }
+        $res = ProxyServerHttp::getHttpClient($request);
+        if ($res["error"]) {
+            return $res;
+        } else {
+            if (!empty($cpu)) {
+                $clientResponse = $res["client"]->request("PUT", "/service/server/${id}/cpu", ['form_params' => ["cpu" => $cpu]]);
+                $res = ProxyServerHttp::parseClientResponse($clientResponse);
+            } elseif (!empty($ram)) {
+                $clientResponse = $res["client"]->request("PUT", "/service/server/${id}/ram", ['form_params' => ["ram" => $ram]]);
+                $res = ProxyServerHttp::parseClientResponse($clientResponse);
+            }
+            if (Arr::get($res, "error")) {
+                if (Arr::get($res, "response")) {
+                    \Log::error($res);
+                    return [
+                        "error" => true,
+                        "message" => json_encode($res["response"])
+                    ];
+                } else {
+                    \Log::error($res);
+                    return [
+                        "error" => true,
+                        "message" => "Unexpected error"
+                    ];
+                }
+            } else {
+                if (is_numeric($res)) {
+                    return ["".$res];
+                } elseif (Arr::get($res, "cmdId") && is_numeric($res["cmdId"])) {
+                    return ["".$res["cmdId"]];
+                } else {
+                    return [
+                        "error" => true,
+                        "message" => "Unexpected response from server: ".json_encode($res)
+                    ];
+                }
+            }
+        }
+    }
+
     function getServerOptions($request, $command) {
         return $this->get($request, $command);
     }

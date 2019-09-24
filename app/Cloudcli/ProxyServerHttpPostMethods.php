@@ -355,7 +355,7 @@ class ProxyServerHttpPostMethods
             }
             $serverIds = [$serversInfo[0]["id"]];
         } else {
-            $serverIds = self::_getServerIdsFromName($request, $nameValue, $context, $serverNames);
+            $serverIds = self::getServerIdsFromName($request, $nameValue, $context, $serverNames);
         }
         if (count($serverIds) == 0) {
             return [
@@ -501,7 +501,7 @@ class ProxyServerHttpPostMethods
     }
 
 
-    static function _getServerIdsFromName(Request $request, $name, $context, &$serverNames) {
+    static function getServerIdsFromName(Request $request, $name, $context, &$serverNames) {
         $serverIds = [];
         $servers = call_user_func($context['handleInternalRequest'], $request, "listServers", [
             "path" => "/service/servers",

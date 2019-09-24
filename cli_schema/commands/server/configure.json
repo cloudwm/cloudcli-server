@@ -1,0 +1,48 @@
+{
+  "use": "configure",
+  "short": "Change server configuration",
+  "wait": true,
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "cpu",
+      "usage": "CPU count and type (see server options)"
+    },
+    {
+      "name": "ram",
+      "usage": "Size of server ram in MiB (see server options)"
+    },
+    "<< getSchemaPart flags/wait >>"
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/configure",
+    "method": "serverConfigure",
+    "serverPath": "/service/server/<id>",
+    "fields": [
+      {
+        "name": "id",
+        "flag": "id"
+      },
+      {
+        "name": "name",
+        "flag": "name"
+      },
+      {
+        "name": "cpu",
+        "flag": "cpu"
+      },
+      {
+        "name": "ram",
+        "flag": "ram"
+      }
+    ]
+  }
+}
