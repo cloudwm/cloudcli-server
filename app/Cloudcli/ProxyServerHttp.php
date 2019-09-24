@@ -47,7 +47,6 @@ class ProxyServerHttp
         if (!$last_error && $res->getStatusCode() == 200) {
             return $decoded_response;
         } else {
-            \Log::error(json_encode($decoded_response));
             return [
                 "error" => true,
                 "status_code" => $res->getStatusCode(),

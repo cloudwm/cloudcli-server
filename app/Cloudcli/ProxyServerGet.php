@@ -90,9 +90,14 @@ class ProxyServerGet
                 if ($boolFlags) {
                     throw new ProxyServerGetInvalidArgumentException($boolFlags[0], "boolean list flags are only supported with array flags: ${boolFlags}");
                 }
-                return ProxyServerHttp::parseClientResponse(
+                $res = ProxyServerHttp::parseClientResponse(
                     $res["client"]->get($serverPath)
                 );
+                if (Arr::get($res, 'error') && Arr::get($res, 'response')) {
+                    return $res['response'];
+                } else {
+                    return $res;
+                }
             }
         }
     }
