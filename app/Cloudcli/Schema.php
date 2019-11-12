@@ -102,6 +102,7 @@ class Schema {
                         self::getSchemaPart("commands/server/network", $context),
                         self::getSchemaPart("commands/server/disk", $context),
                         self::getSchemaPart("commands/server/configure", $context),
+                        self::getSchemaPart("commands/server/history", $context),
                     ]
                 ];
 

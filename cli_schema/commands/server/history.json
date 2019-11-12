@@ -1,0 +1,46 @@
+{
+  "use": "history",
+  "short": "List server actions history",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/history",
+    "method": "serverHistory",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/svc/server/<id>/history",
+    "serverMethod": "GET",
+    "fields": [
+      {
+        "name": "id",
+        "hide": true
+      },
+      {
+        "name": "name",
+        "flag": "name",
+        "hide": true
+      },
+      {
+        "name": "action"
+      },
+      {
+        "name": "date"
+      },
+      {
+        "name": "user"
+      }
+    ],
+    "postGetResponsesActions": [
+      {"collapseResponses": true}
+    ]
+  }
+}

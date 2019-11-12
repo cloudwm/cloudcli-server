@@ -42,6 +42,10 @@ class ProxyServer extends BaseServer {
         return $this->post($request, $command);
     }
 
+    function serverHistory($request, $command) {
+        return $this->post($request, $command);
+    }
+
     function serverDisk($request, $command) {
         return $this->post($request, $command);
     }
