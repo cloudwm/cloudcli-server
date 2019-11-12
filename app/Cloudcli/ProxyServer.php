@@ -51,9 +51,24 @@ class ProxyServer extends BaseServer {
         $name = $request->input('name', null);
         $cpu = $request->input('cpu', null);
         $ram = $request->input('ram', null);
+        $billingcycle = $request->input('billingcycle', null);
+        $monthlypackage = $request->input('monthlypackage', null);
+        $flags = [
+            ["flag" => "dailybackup", "param" => "backup"],
+            ["flag" => "managed", "param" => "managed"]
+        ];
         $numCommands = 0;
         if (!empty($cpu)) $numCommands++;
         if (!empty($ram)) $numCommands++;
+        if (!empty($billingcycle)) {
+            $numCommands++;
+        } elseif (!empty($monthlypackage)) {
+            $numCommands++;
+        }
+        foreach ($flags as $flag) {
+            $value = $request->input($flag['flag'], null);
+            if (!empty($value)) $numCommands++;
+        }
         if ($numCommands < 1) {
             return ["error" => true, "message" => "Please choose a configuration flag"];
         } elseif ($numCommands > 1) {
@@ -82,6 +97,50 @@ class ProxyServer extends BaseServer {
             } elseif (!empty($ram)) {
                 $clientResponse = $res["client"]->request("PUT", "/service/server/${id}/ram", ['form_params' => ["ram" => $ram]]);
                 $res = ProxyServerHttp::parseClientResponse($clientResponse);
+            } elseif (!empty($billingcycle) || !empty($monthlypackage)) {
+                if ($billingcycle == "hourly") {
+                    $billingParam = "1";
+                    if (!empty($monthlypackage)) {
+                        return ["error" => true, "message" => "monthlypackage is not allowed for hourly billing cycle"];
+                    } else {
+                        $clientResponse = $res["client"]->request("PUT", "/svc/server/${id}/configuration", ['json' => ["billing" => $billingParam,]]);
+                        $res = ProxyServerHttp::parseClientResponse($clientResponse);
+                    }
+                } else {
+                    if (empty($billingcycle)) {
+                        $billingParam = "";
+                    } elseif ($billingcycle == "monthly") {
+                        $billingParam = "0";
+                    } else {
+                        return ["error" => true, "message" => "Invalid billingcycle, allowed values: monthly / hourly"];
+                    }
+                    $clientResponse = $res["client"]->request("GET", "/svc/server/${id}/configuration");
+                    $subRes = ProxyServerHttp::parseClientResponse($clientResponse);
+                    $trafficOptions = Arr::get($subRes, "options.traffic", []);
+                    if (empty($trafficOptions)) {
+                        return ["error" => true, "message" => "Cannot use monthly billing cycle, no available traffic options"];
+                    } elseif (empty($monthlypackage)) {
+                        return ["error" => true, "message" => "--monthlypackage flag is required, valid values for your server: " . implode(" / ", $trafficOptions)];
+                    } elseif (!in_array($monthlypackage, $trafficOptions)) {
+                        return ["error" => true, "message" => "Invalid value for --monthlypackage, valid values for your server: " . implode(" / ", $trafficOptions)];
+                    } else {
+                        $clientResponse = $res["client"]->request("PUT", "/svc/server/${id}/configuration", ['json' => ["billing" => $billingParam, "traffic" => $monthlypackage]]);
+                        $res = ProxyServerHttp::parseClientResponse($clientResponse);
+                    }
+                }
+            } else {
+                foreach ($flags as $flag) {
+                    $value = $request->input($flag['flag'], null);
+                    if ($value !== null) {
+                        if (!in_array($value, ["yes", "no"])) {
+                            return ["error" => true, "message" => "Invalid value for --".$flag['flag'].". Valid values: 'yes' or 'no'"];
+                        }
+                        $param = $value == "yes" ? "1" : "0";
+                        $clientResponse = $res["client"]->request("PUT", "/svc/server/${id}/configuration", ['json' => [$flag['param'] => $param,]]);
+                        $res = ProxyServerHttp::parseClientResponse($clientResponse);
+                        break;
+                    }
+                }
             }
             if (Arr::get($res, "error")) {
                 if (Arr::get($res, "response")) {

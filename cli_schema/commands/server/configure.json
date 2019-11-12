@@ -19,6 +19,22 @@
       "name": "ram",
       "usage": "Size of server ram in MiB (see server options)"
     },
+    {
+      "name": "dailybackup",
+      "usage": "Enable or disable daily backup (yes | no)"
+    },
+    {
+      "name": "managed",
+      "usage": "Enable or disable managed hosting services (yes | no)"
+    },
+    {
+      "name": "billingcycle",
+      "usage": "Server billing cycle (hourly | monthly)"
+    },
+    {
+      "name": "monthlypackage",
+      "usage": "Required when billingcycle is monthly, run without this flag to get the available options"
+    },
     "<< getSchemaPart flags/wait >>"
   ],
   "run": {
@@ -42,6 +58,22 @@
       {
         "name": "ram",
         "flag": "ram"
+      },
+      {
+        "name": "dailybackup",
+        "flag": "dailybackup"
+      },
+      {
+        "name": "managed",
+        "flag": "managed"
+      },
+      {
+        "name": "billingcycle",
+        "flag": "billingcycle"
+      },
+      {
+        "name": "monthlypackage",
+        "flag": "monthlypackage"
       }
     ]
   }
