@@ -446,8 +446,25 @@ class ProxyServerHttpPostMethods
 
     static function returnProxyHttpPostResponse(Request $request, $httpMethod, $command, $postMultipart, $context) {
         $res = ProxyServerHttp::getHttpClient($request);
+        foreach(Arr::get($command, "schemaCommand.run.fields", []) as $runField) {
+            if (Arr::get($runField, "postName")) {
+                foreach ($postMultipart as &$postItem) {
+                    if ($postItem['name'] == $runField['name']) {
+                        $postItem['name'] = $runField['postName'];
+                    }
+                };
+            }
+        }
         if ($res["error"]) {
             return $res;
+        } elseif (Arr::get($command, "schemaCommand.run.serverFieldsEncoding") == "json") {
+            $jsonParams = [];
+            foreach ($postMultipart as $mp) {
+                $jsonParams[$mp["name"]] = $mp["contents"];
+            }
+            $res = ProxyServerHttp::parseClientResponse(
+                $res["client"]->request($httpMethod, $command["path"], ["json" => $jsonParams])
+            );
         } elseif ($httpMethod == "DELETE" || $httpMethod == "PUT") {
             foreach ($postMultipart as $mp) {
                 $formParams[$mp["name"]] = $mp["contents"];
@@ -489,6 +506,8 @@ class ProxyServerHttpPostMethods
             return $res;
         } elseif (is_int($res) || is_string($res)) {
             return ["$res"];
+        } elseif (is_array($res) && Arr::get($res, "cmdId")) {
+            return ["${res['cmdId']}"];
         } elseif (is_array($res) && count($res) == 1) {
             return ["$res[0]"];
         } else {

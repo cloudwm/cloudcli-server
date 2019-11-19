@@ -1,0 +1,58 @@
+{
+  "use": "rename",
+  "short": "Rename server",
+  "wait": true,
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "new-name",
+      "usage": "The new name (a-zA-Z0-9()_-). (must be at least 4 characters long)",
+      "required": true
+    },
+    {
+      "name": "wait",
+      "usage": "Wait for command execution to finish only then exit cli.",
+      "bool": true
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/service/server/rename",
+    "method": "post",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/svc/server/<id>/rename",
+    "serverMethod": "PUT",
+    "serverFieldsEncoding": "json",
+    "fields": [
+      {
+        "name": "id",
+        "flag": "id"
+      },
+      {
+        "name": "name",
+        "flag": "name"
+      },
+      {
+        "name": "new-name",
+        "flag": "new-name",
+        "postName": "name",
+        "serverProcessing": [
+          {
+            "method":  "validateChars",
+            "extraAllowedChars": "()-_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0123456789",
+            "minLength": 4,
+            "maxLength": 40
+          }
+        ]
+      }
+    ]
+  }
+}
