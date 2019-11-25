@@ -16,7 +16,7 @@ class ProxyServerOptions
 
     static function getDiskImageId($disk_image, $datacenter, $context)
     {
-        \Log::info("Fetching server options to get disk image ID (disk image name = ${disk_image})");
+//        \Log::info("Fetching server options to get disk image ID (disk image name = ${disk_image})");
         $serverOptions = ProxyServerGet::get($context['request'], [
             "path" => "/service/server",
             "schemaCommand" => []

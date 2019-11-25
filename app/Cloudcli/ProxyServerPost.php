@@ -23,7 +23,7 @@ class ProxyServerPost
     }
 
     static function setMultipartValue(&$postMultipart, $key, $value) {
-        \Log::info("Setting multipart value ${key}=${value}");
+//        \Log::info("Setting multipart value ${key}=${value}");
         foreach ($postMultipart as &$v) {
             if (Arr::get($v, 'name') == $key) {
                 $v['contents'] = $value;

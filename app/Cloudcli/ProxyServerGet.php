@@ -17,9 +17,9 @@ class ProxyServerGet
     static function processBoolFlags($flagNames, $items, Request $request) {
         $enabledFlagNames = [];
         if ($flagNames) {
-            \Log::info("flagNames=".implode(',', $flagNames));
+//            \Log::info("flagNames=".implode(',', $flagNames));
             foreach ($flagNames as $flagName) {
-                \Log::info($request->input($flagName, ""));
+//                \Log::info($request->input($flagName, ""));
                 if ($request->input($flagName, "")) {
                     $enabledFlagNames[] = $flagName;
                 }

@@ -1,0 +1,124 @@
+{
+  "use": "statistics",
+  "short": "Get server statistics",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "cpu",
+      "usage": "Show CPU metrics",
+      "bool": true
+    },
+    {
+      "name": "ram",
+      "usage": "Show RAM metrics",
+      "bool": true
+    },
+    {
+      "name": "network",
+      "usage": "Show Network metrics",
+      "bool": true
+    },
+    {
+      "name": "disksIops",
+      "usage": "Show Disk IO Operations metrics",
+      "bool": true
+    },
+    {
+      "name": "disksTransfer",
+      "usage": "Show Disk Transfer metrics",
+      "bool": true
+    },
+    {
+      "name": "startdate",
+      "usage": "Show metrics since this date (yyyymmdd)"
+    },
+    {
+      "name": "enddate",
+      "usage": "Show metrics until this date (yyyymmdd)"
+    },
+    {
+      "name": "period",
+      "usage": "Period to show metrics for: (1h | 8h |1w | 1m | 3m)"
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/statistics",
+    "method": "post",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/svc/server/<id>/statistics",
+    "serverPathPreProcessing": [
+        {"serverStatisticsPath":  true}
+    ],
+    "ParseStatisticsResponse": true,
+    "serverMethod": "GET",
+    "fields": [
+      {
+        "name": "id",
+        "hide": true
+      },
+      {
+        "name": "name",
+        "flag": "name",
+        "hide": true
+      },
+      {
+        "name": "date"
+      },
+      {
+        "name": "metric"
+      },
+      {
+        "name": "value"
+      },
+      {
+        "name": "cpu",
+        "flag": "cpu",
+        "hide": true, "bool": true
+      },
+      {
+        "name": "ram",
+        "flag": "ram",
+        "hide": true, "bool": true
+      },
+      {
+        "name": "network",
+        "flag": "network",
+        "hide": true, "bool": true
+      },
+      {
+        "name": "disksIops",
+        "flag": "disksIops",
+        "hide": true, "bool": true
+      },
+      {
+        "name": "disksTransfer",
+        "flag": "disksTransfer",
+        "hide": true, "bool": true
+      },
+      {
+        "name": "startdate",
+        "flag": "startdate",
+        "hide": true
+      },
+      {
+        "name": "enddate",
+        "flag": "enddate",
+        "hide": true
+      },
+      {
+        "name": "period",
+        "flag": "period",
+        "hide": true
+      }
+    ]
+  }
+}

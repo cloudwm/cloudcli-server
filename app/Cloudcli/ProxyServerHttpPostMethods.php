@@ -21,7 +21,7 @@ class ProxyServerHttpPostMethods
             return $res;
         } else {
             $serverPath = $command["schemaCommand"]["run"]["serverPath"];
-            \Log::info("${httpMethod} ${res['server']}${serverPath} ".json_encode($postJson));
+//            \Log::info("${httpMethod} ${res['server']}${serverPath} ".json_encode($postJson));
             $clientResponse = $res["client"]->request($httpMethod, $serverPath, [
                 'json'  => $postJson
             ]);
@@ -277,7 +277,7 @@ class ProxyServerHttpPostMethods
         return $newResponses;
     }
 
-    static function runPostGetResponsesAction($postGetResponsesAction, $responses, $command) {
+    static function runPostGetResponsesAction($postGetResponsesAction, $responses, $command, $context) {
         $returnFields = Arr::get($postGetResponsesAction, "returnFields");
         if ($returnFields) {
             $newResponses = [];
@@ -324,6 +324,74 @@ class ProxyServerHttpPostMethods
             $responses = $response;
         }
         return $responses;
+    }
+
+    static function serverStatisticsPathPreProcessing($request, $path, &$context) {
+        $category = '';
+        $error = '';
+        foreach (['network', 'ram', 'cpu', 'disksIops', 'disksTransfer'] as $k) {
+            if ($request->input($k) == 'true') {
+                if ($category == '') {
+                    $category = $k;
+                } else {
+                    $error = 'Please choose a single metric to view';
+                    break;
+                }
+            }
+        }
+        if ($error != '') {
+            return [null, $error];
+        }
+        if ($category == '') {
+            return [null, 'Please choose a metric to show'];
+        }
+        $context['statisticsSelectedCategory'] = $category;
+        $startdate = $request->input('startdate');
+        $enddate = $request->input('enddate');
+        $period = $request->input('period');
+        if ($period) {
+            if ($startdate || $enddate) {
+                return [null, 'Please choose either period or start/enddate flags but not both'];
+            } else {
+                $enddate = new \DateTime();
+                $startdate = clone($enddate);
+                if ($period == '1h') {
+                    $startdate->sub(new \DateInterval('PT1H'));
+                } elseif ($period == '8h') {
+                    $startdate->sub(new \DateInterval('PT8H'));
+                } elseif ($period == '1w') {
+                    $startdate->sub(new \DateInterval('P1W'));
+                } elseif ($period == '1m') {
+                    $startdate->sub(new \DateInterval('P1M'));
+                } elseif ($period == '3m') {
+                    $startdate->sub(new \DateInterval('P3M'));
+                } else {
+                    return [null, 'Please choose from one of the supported periods, see statistics command help message for details'];
+                }
+                $startdate = $startdate->format('Y-m-d') . 'T' . $startdate->format('H:i:s') . '.000Z';
+                $enddate = $enddate->format('Y-m-d') . 'T' . $enddate->format('H:i:s') . '.000Z';
+//                \Log::info($startdate);
+//                \Log::info($enddate);
+                $path .= '?category='.$category.'&dtFrom='.$startdate.'&dtTo='.$enddate;
+                return [$path, ''];
+            }
+        } else {
+            if (!$startdate || !$enddate) {
+                return [null, 'Please specify both startdate and enddate flags'];
+            } else {
+                try {
+                    $startdate = \DateTime::createFromFormat('Ymd  -- H:i:s', $startdate.'  -- 00:00:00');
+                    $enddate = \DateTime::createFromFormat('Ymd  -- H:i:s', $enddate.'  -- 23:59:59');
+                } catch (\Exception $e) {
+                    \Log::error($e->getTraceAsString());
+                    return [null, 'Please specify startdate and enddate using the format YYYYMMDD'];
+                }
+                $startdate = $startdate->format('Y-m-d') . 'T' . $startdate->format('H:i:s') . '.000Z';
+                $enddate = $enddate->format('Y-m-d') . 'T' . $enddate->format('H:i:s') . '.000Z';
+                $path .= '?category='.$category.'&dtFrom='.$startdate.'&dtTo='.$enddate;
+                return [$path, ''];
+            }
+        }
     }
 
     static function returnProxyHttpMultiServerPostResponse(Request $request, $httpMethod, $command, $postMultipart, $context) {
@@ -406,6 +474,19 @@ class ProxyServerHttpPostMethods
                     }
                 }
                 $path = str_replace("<id>", $serverId, $command["schemaCommand"]["run"]["serverPath"]);
+                if (Arr::get($command, "schemaCommand.run.serverPathPreProcessing")) {
+                    foreach ($command['schemaCommand']['run']['serverPathPreProcessing'] as $serverPathProcessing) {
+                        if (Arr::get($serverPathProcessing, 'serverStatisticsPath')) {
+                            [$path, $error] = self::serverStatisticsPathPreProcessing($request, $path, $context);
+                            if ($error) {
+                                return [
+                                    "error" => true,
+                                    "message" => $error
+                                ];
+                            }
+                        }
+                    }
+                }
                 $postCommand = $command;
                 $postCommand["path"] = $path;
                 $response = self::returnProxyHttpPostResponse($request, $httpMethod, $postCommand, $serverPostMultipart, $context);
@@ -433,7 +514,7 @@ class ProxyServerHttpPostMethods
             if ($httpMethod == "GET") {
                 if (Arr::get($command, "schemaCommand.run.postGetResponsesActions")) {
                     foreach ($command["schemaCommand"]["run"]["postGetResponsesActions"] as $postGetResponsesAction) {
-                        $responses = self::runPostGetResponsesAction($postGetResponsesAction, $responses, $command);
+                        $responses = self::runPostGetResponsesAction($postGetResponsesAction, $responses, $command, $context);
                     }
                 }
                 return $responses;
@@ -473,6 +554,9 @@ class ProxyServerHttpPostMethods
                 $res["client"]->request($httpMethod, $command["path"], ["form_params" => $formParams])
             );
         } else {
+//            \Log::info($httpMethod);
+//            \Log::info($command["path"]);
+//            \Log::info($postMultipart);
             $res = ProxyServerHttp::parseClientResponse(
                 $res["client"]->request($httpMethod, $command["path"], ['multipart' => $postMultipart])
             );
