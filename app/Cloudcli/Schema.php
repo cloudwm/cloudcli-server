@@ -64,6 +64,9 @@ class Schema {
             $schema['short'] = $schema["cloneShort"];
             unset($schema['interactive']);
             $schema['isServerClone'] = true;
+            $schema['run']['path'] = '/service/cloneServer';
+        } else {
+            $schema['isServerClone'] = false;
         }
         unset($schema["cloneUse"]);
         unset($schema["cloneShort"]);
@@ -94,13 +97,15 @@ class Schema {
         if ($type == 'clone') {
             $schema['run']['method'] = 'post';
         }
-        $serverPostProcessing = [];
-        foreach ($schema['run']['serverPostProcessing'] as $p) {
-            if ($p['method'] != 'validateDiskImageId') {
-                $serverPostProcessing[] = $p;
+        if ($type == "clone") {
+            $serverPostProcessing = [];
+            foreach ($schema['run']['serverPostProcessing'] as $p) {
+                if ($p['method'] != 'validateDiskImageId') {
+                    $serverPostProcessing[] = $p;
+                }
             }
+            $schema['run']['serverPostProcessing'] = $serverPostProcessing;
         }
-        $schema['run']['serverPostProcessing'] = $serverPostProcessing;
         if ($type == "clone") {
             $fields = [
                 [

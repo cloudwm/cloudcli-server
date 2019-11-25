@@ -141,8 +141,8 @@ class ProxyServerPostProcessingMethods
             "netSubnets" => $netSubnets,
             "netPrefixes" => $netPrefixes,
             "netIps" => $netIps,
-            "diskImageId" => Arr::get($values, "image"),
-            "sourceServerId" => Arr::get($values, "sourceServerId"),
+            "diskImageId" => Arr::get($values, "image", ''),
+            "sourceServerId" => Arr::get($values, "sourceServerId", ''),
             "userId" => 0,
             "ownerId" => 0,
             "srcUI" => true
