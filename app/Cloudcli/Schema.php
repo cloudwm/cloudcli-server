@@ -58,6 +58,72 @@ class Schema {
         return self::getSchemaPart("root");
     }
 
+    static function getCreateCloneServerSchemaPart($schema, $type) {
+        if ($type == "clone") {
+            $schema['use'] = $schema["cloneUse"];
+            $schema['short'] = $schema["cloneShort"];
+            unset($schema['interactive']);
+            $schema['isServerClone'] = true;
+        }
+        unset($schema["cloneUse"]);
+        unset($schema["cloneShort"]);
+        if ($type == "clone") {
+            $flags = [
+                [
+                    "name" => "source-id",
+                    "usage" => "Source server ID to clone"
+                ],
+                [
+                    "name" => "source-name",
+                    "usage" => "Source server name or regular expression matching a single server to clone"
+                ]
+            ];
+        } else {
+            $flags = [];
+        }
+        foreach($schema['flags'] as $flag) {
+            if ($type == "create" || !in_array($flag['name'], ['interactive', 'datacenter', 'image'])) {
+                if ($type == "clone" && Arr::get($flag, 'cloneUsage')) {
+                    $flag['usage'] = $flag['cloneUsage'];
+                }
+                $flags[] = $flag;
+            }
+            unset($flag['cloneUsage']);
+        }
+        $schema['flags'] = $flags;
+        if ($type == 'clone') {
+            $schema['run']['method'] = 'post';
+        }
+        $serverPostProcessing = [];
+        foreach ($schema['run']['serverPostProcessing'] as $p) {
+            if ($p['method'] != 'validateDiskImageId') {
+                $serverPostProcessing[] = $p;
+            }
+        }
+        $schema['run']['serverPostProcessing'] = $serverPostProcessing;
+        if ($type == "clone") {
+            $fields = [
+                [
+                    "name" => "source-id",
+                    "flag" => "source-id"
+                ],
+                [
+                    "name" => "source-name",
+                    "flag" => "source-name"
+                ]
+            ];
+        } else {
+            $fields = [];
+        }
+        foreach ($schema['run']['fields'] as $field) {
+            if ($type == "create" || !in_array($field['name'], ['datacenter', 'image'])) {
+                $fields[] = $field;
+            }
+        }
+        $schema['run']['fields'] = $fields;
+        return $schema;
+    }
+
     static function getSchemaPart($partName, $context=null) {
         if (!$context) {
             $context = [];
@@ -92,7 +158,8 @@ class Schema {
                         self::getSchemaPart("commands/server/power", ["use" => "poweroff", "short" => "Power Off", "power" => "off"]),
                         self::getSchemaPart("commands/server/power", ["use" => "reboot", "short" => "Reboot", "power" => "restart"]),
                         self::getSchemaPart("commands/server/options", $context),
-                        self::getSchemaPart("commands/server/create", $context),
+                        self::getCreateCloneServerSchemaPart(self::getSchemaPart("commands/server/create", $context), "create"),
+                        self::getCreateCloneServerSchemaPart(self::getSchemaPart("commands/server/create", $context), "clone"),
                         self::getSchemaPart("commands/server/info", $context),
                         self::getSchemaPart("commands/server/attach", $context),
                         self::getSchemaPart("commands/server/password", $context),

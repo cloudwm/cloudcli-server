@@ -29,7 +29,7 @@ class BaseServerRequest {
             \Log::error($e->getTraceAsString());
             $res = [
                 "error" => true,
-                "message" => "Failed to run command method (${command['method']})"
+                "message" => $command['method'] == 'post' ? 'Failed to run command ('.$command['schemaCommand']['use'].')' : "Failed to run command method (${command['method']})"
             ];
             if (config('app.debug', false)) {
                 $res['message'] = $res['message'].': '.$e->getMessage(); //."\n".$e->getTraceAsString();

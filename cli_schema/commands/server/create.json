@@ -1,6 +1,13 @@
 {
+  "__comments__": [
+      "command is shared between both server create and server clone commands",
+      "before making changes please check clone logic in Schema.php for details",
+      "and be sure to test both commands thoroughly"
+  ],
   "use": "create",
   "short": "Create a server",
+  "cloneUse": "clone",
+  "cloneShort": "Clone a server",
   "wait": true,
   "interactive": true,
   "dont-sort-flags": true,
@@ -32,12 +39,14 @@
     {
       "name": "cpu",
       "usage": "CPU count and type. (optional, default: 1B)",
+      "cloneUsage": "CPU count and type. (optional, default from source server)",
       "default": "1B",
       "selectfrom-serveroption": "cpu"
     },
     {
       "name": "ram",
       "usage": "Size of server ram in MiB. (optional, default: 1024)",
+      "cloneUsage": "Size of server ram in MiB. (optional, default from source server)",
       "default": "1024",
       "selectfrom-serveroption": "ram"
     },
@@ -45,6 +54,7 @@
       "name": "disk",
       "array": true,
       "usage": "Configure Persistent Disks, Up to 4 disks allowed. (at least 1 is mandatory)\n--disk id=ID,size=SIZE --disk <DISK2>..\nID: first disk # is 0. (optional, default is auto-incremented starting from 0)\nSIZE: in GiB. (optional, defaults to one 20GB disk)",
+      "cloneUsage": "Configure Persistent Disks, Up to 4 disks allowed. (optional, if provided overrides all source server disks)\n--disk id=ID,size=SIZE --disk <DISK2>..\nID: first disk # is 0. (optional, default is auto-incremented starting from 0)\nSIZE: in GiB. (optional, defaults to one 20GB disk)",
       "fields": [
         {
           "name": "id"
@@ -60,6 +70,7 @@
       "name": "network",
       "array": true,
       "usage": "Configure networking, up to 4 networks allowed. (at least 1 is mandatory)\n--network id=ID,name=NAME,ip=IP --network <NETWORK2>..\nID: first network # is 0. (optional, default is auto-incremented starting from 0)\nNAME: Set the network VLAN name, set 'wan' for wan interface, otherwise, set the name of an existing lan. (mandatory)\nIP: Set the IP address of the server’s network interface. Set 'auto' for auto allocation. (mandatory)",
+      "cloneUsage": "Configure networking, up to 4 networks allowed. (optional, if provided overrides all source server networks)\n--network id=ID,name=NAME,ip=IP --network <NETWORK2>..\nID: first network # is 0. (optional, default is auto-incremented starting from 0)\nNAME: Set the network VLAN name, set 'wan' for wan interface, otherwise, set the name of an existing lan. (mandatory)\nIP: Set the IP address of the server’s network interface. Set 'auto' for auto allocation. (mandatory)",
       "fields": [
         {"name": "id"}, {"name": "name"}, {"name": "ip"}
       ],
@@ -69,6 +80,7 @@
     {
       "name": "password",
       "usage": "Server password (a-z, A-Z, 0-9, !@#$^&*()~). (must be 10-20 characters long with at least 1 capital letter, 1 small letter and 1 digit, mandatory)",
+      "cloneUsage": "Server password (a-z, A-Z, 0-9, !@#$^&*()~). (must be 10-20 characters long with at least 1 capital letter, 1 small letter and 1 digit, mandatory)",
       "required": true,
       "validate-regex": "[a-zA-Z0-9!@#$^&*()~)]{10,20}",
       "validate-password": true
@@ -76,18 +88,21 @@
     {
       "name": "dailybackup",
       "usage": "Set Daily Backup (yes | no). (optional, default: no)",
+      "cloneUsage": "Set Daily Backup (yes | no). (optional, default from source server)",
       "default": "no",
       "validate-boolean": true
     },
     {
       "name": "managed",
       "usage": "Set Managed Hosting Services (yes | no). (optional, default: no)",
+      "cloneUsage": "Set Managed Hosting Services (yes | no). (optional, default from source server)",
       "default": "no",
       "validate-boolean": true
     },
     {
       "name": "quantity",
       "usage": "Number of servers to create, up to 50 servers. (optional, default: 1)",
+      "cloneUsage": "Number of servers to create, up to 50 servers. (optional, default from source server)",
       "default": "1",
       "validate-integer-min": 1,
       "validate-integer-max": 50
@@ -95,25 +110,29 @@
     {
       "name": "billingcycle",
       "usage": "Servers' Billing Cycle. (hourly | monthly) (optional, default: hourly)",
+      "cloneUsage": "Servers' Billing Cycle. (hourly | monthly) (optional, default from source server)",
       "default": "hourly",
       "validate-values": ["hourly", "monthly"]
     },
     {
       "name": "monthlypackage",
       "usage": "Monthly billing cycle package (see server options subcommand). (optional in monthly billing cycle, default: t5000)",
+      "cloneUsage": "Monthly billing cycle package (see server options subcommand). (optional in monthly billing cycle, default from source server)",
       "default": "t5000",
       "selectfrom-serveroption": "traffic"
     },
     {
       "name": "poweronaftercreate",
       "usage": "Power on server after server created. (optional, default: yes)",
+      "cloneUsage": "Power on server after server created. (optional, default: yes, not copied from source server)",
       "default": "yes",
       "validate-boolean": true
     },
     "<< getSchemaPart flags/wait >>",
     {
       "name": "ssh-key",
-      "usage": "Path to public key file, adds to server authorized keys after create is done. (requires --wait)"
+      "usage": "Path to public key file, adds to server authorized keys after create is done. (requires --wait)",
+      "cloneUsage": "Path to public key file, adds to server authorized keys after create is done. (requires --wait, not cloned from server server)"
     }
   ],
   "run": {

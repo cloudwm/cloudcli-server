@@ -180,15 +180,122 @@ class ProxyServerPost
         return $postMultipart;
     }
 
+    static function getServerCloneFieldValues($fieldValues, $request, $handleInternalRequestCallback) {
+        $sourceId = Arr::get($fieldValues, 'source-id');
+        $sourceName = Arr::get($fieldValues, 'source-name');
+        if (!empty($sourceId) && !empty($sourceName)) {
+            return [null, self::_getError('Please specify either source-id or source-name but not both')];
+        } elseif (!empty($sourceName)) {
+            $serverIds = [];
+            $servers = call_user_func($handleInternalRequestCallback, $request, "listServers", [
+                "path" => "/service/servers",
+                "schemaCommand" => []
+            ]);
+            foreach ($servers as $server) {
+                if (preg_match("/^".$sourceName."$/", $server["name"])) {
+                    $serverIds[] = $server["id"];
+                    $serverNames[] = $server['name'];
+                }
+            }
+            if (count($serverIds) > 1) {
+                return [null, self::_getError('source-name matched multiple servers, please ensure regular expression matches only a single server')];
+            } elseif (count($serverIds) < 1) {
+                return [null, self::_getError('source-name did not match any servers')];
+            } else {
+                $sourceId = $serverIds[0];
+            }
+        }
+        if (empty($sourceId)) {
+            return [null, self::_getError('Please specify the source server to clone using either source-id or source-name flags')];
+        } else {
+            $res = ProxyServerHttp::getHttpClient($request);
+            if ($res["error"]) {
+                return [null, $res];
+            } else {
+                $clientResponse = ProxyServerHttp::parseClientResponse($res["client"]->request("GET", "/svc/serverCreate/configuration?userId=0&sourceDiskImageId=&sourceServerId=${sourceId}&routeDescription=serverCreate"));
+//                \Log::info($clientResponse);
+//                return [null, self::_getError('not implemented yet')];
+                foreach (["datacenter" => "datacenter", "cpuStr" => "cpu", "ramMB" => "ram",] as $sourceField => $field) {
+                    if (!Arr::get($fieldValues, "$field")) {
+                        $fieldValues["$field"] = Arr::get($clientResponse, "$sourceField");
+                    }
+                }
+                foreach (["backup" => "dailybackup", "managed" => "managed"] as $sourceField => $field) {
+                    if (Arr::get($fieldValues, "$field", null) === null) {
+                        $fieldValues["$field"] = Arr::get($clientResponse, "$sourceField") ? "yes" : "no";
+                    }
+                }
+                if (Arr::get($fieldValues, "billingcycle", null) === null) {
+                    $fieldValues["billingcycle"] = Arr::get($clientResponse, "billingMode") == 0 ? "monthly" : "hourly";
+                }
+                if (Arr::get($fieldValues, "monthlypackage", null) === null && $fieldValues["billingcycle"] == "monthly") {
+                    $fieldValues["monthlypackage"] = Arr::get($clientResponse, "trafficPackage");
+                }
+                $fieldValues['sourceServerId'] = Arr::get($clientResponse, 'sourceServerId');
+                if (Arr::get($fieldValues, "disk", null) === null) {
+                    $disks = [];
+                    foreach (Arr::get($clientResponse, 'diskSizesGB', []) as $diskSizeGB) {
+                        $disks[] = "size=${diskSizeGB}";
+                    }
+                    $fieldValues['disk'] = implode(' ', $disks);
+                }
+                if (Arr::get($fieldValues, "network", null) === null) {
+                    $networks = [];
+                    foreach (Arr::get($clientResponse, 'netModes') as $i => $netMode) {
+                        $networks[$i] = ['netMode' => $netMode];
+                    }
+                    foreach (Arr::get($clientResponse, 'netNames') as $i => $netName) {
+                        $networks[$i]['netName'] = $netName;
+                    }
+                    foreach (Arr::get($clientResponse, 'netPrefixes') as $i => $netPrefix) {
+                        if ($netPrefix != 0) {
+                            return [null, self::_getError('Cloning a server with advanced networking is not supported at the moment')];
+                        }
+                        $networks[$i]['netPrefix'] = $netPrefix;
+                    }
+                    foreach (Arr::get($clientResponse, 'netSubnets') as $i => $netSubnet) {
+                        if ($netSubnet != '') {
+                            return [null, self::_getError('Cloning a server with advanced networking is not supported at the moment')];
+                        }
+                        $networks[$i]['netSubnet'] = $netSubnet;
+                    }
+                    foreach (Arr::get($clientResponse, 'netIps') as $i => $netIp) {
+                        $networks[$i]['netIp'] = $netIp;
+                    }
+//                \Log::info($networks);
+                    $networkStrings = [];
+                    foreach($networks as $network) {
+                        $ip = $network['netIp'];
+                        if ($network['netMode'] == 'wan') {
+                            $name = 'wan';
+                        } else {
+                            $name = $network['netName'];
+                        }
+                        $networkStrings[] = 'name='.$name.',ip='.$ip;
+                    }
+                    $fieldValues['network'] = implode(' ', $networkStrings);
+                }
+            }
+            unset($fieldValues['source-id']);
+            unset($fieldValues['source-name']);
+//            \Log::info($fieldValues);
+//            return [null, self::_getError('not implemented yet')];
+            return [$fieldValues, null];
+        }
+    }
+
     static function post(Request $request, $command, $httpMethod=null, $handleInternalRequestCallback=null) {
         $schemaCommand = $command["schemaCommand"];
         $httpMethod = self::getHttpMethod($schemaCommand, $httpMethod);
         $flags = self::getFlags($schemaCommand);
         $runFields = self::getRunFields($schemaCommand);
         $fieldValues = self::getFieldValues($request, $schemaCommand);
-//        var_dump($flags);
-//        var_dump($runFields);
-//        var_dump($fieldValues);
+        if (Arr::get($schemaCommand, 'isServerClone')) {
+            [$fieldValues, $err] = self::getServerCloneFieldValues($fieldValues, $request, $handleInternalRequestCallback);
+            if ($err) {
+                return $err;
+            }
+        }
         list($postMultipart, $errors) = self::getPostMultipart($schemaCommand, $fieldValues, $runFields, $flags);
         if (count($errors) > 0) {
             \Log::info(var_export($errors, true));
@@ -223,6 +330,10 @@ class ProxyServerPost
         } else {
             $message .= " (".$name."=".$value.")";
         }
+        return ["error" => true, "message" => $message, "status_code" => 400];
+    }
+
+    static function _getError($message) {
         return ["error" => true, "message" => $message, "status_code" => 400];
     }
 
