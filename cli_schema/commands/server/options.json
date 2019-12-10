@@ -39,8 +39,9 @@
       {
         "name": "ram",
         "key": "ram",
-        "type": "list",
+        "type": "mapOfLists",
         "fields": [
+          {"name":  "cpu_type", "from":  "key"},
           {"name":  "ram_size_gb", "from":  "value"}
         ]
       },
