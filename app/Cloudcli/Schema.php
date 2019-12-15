@@ -85,9 +85,16 @@ class Schema {
             $flags = [];
         }
         foreach($schema['flags'] as $flag) {
-            if ($type == "create" || !in_array($flag['name'], ['interactive', 'datacenter', 'image'])) {
-                if ($type == "clone" && Arr::get($flag, 'cloneUsage')) {
+            if ($type == "create") {
+                $flags[] = $flag;
+            } else if (!in_array($flag['name'], ['interactive', 'datacenter', 'image'])) {
+                if (Arr::get($flag, 'cloneUsage')) {
                     $flag['usage'] = $flag['cloneUsage'];
+                }
+                $flag['__cloneDefault'] = Arr::get($flag, 'default');
+                unset($flag['default']);
+                if (Arr::has($flag, 'cloneDefault')) {
+                    $flag['default'] = $flag['cloneDefault'];
                 }
                 $flags[] = $flag;
             }

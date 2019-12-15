@@ -65,6 +65,7 @@ class ProxyServerPostProcessingMethods
      */
     static function createServerPostProcessing($postMultipart, $p, $context) {
         $values = ProxyServerPost::getPostMultiPartValues($postMultipart);
+//        \Log::info($values);
         $diskSizeGB = [];
         foreach ($values["disk"] as $disk_id => $disk) {
             $diskSizeGB[$disk_id] = $disk["size"];
@@ -117,7 +118,7 @@ class ProxyServerPostProcessingMethods
         switch (strtolower($values["poweronaftercreate"])) {
             case "yes": $poweroncompletion = true; break;
             case "no": $poweroncompletion = false; break;
-            default: throw new ProxyServerInvalidArgumentException("dailybackup");
+            default: throw new ProxyServerInvalidArgumentException("poweronaftercreate");
         }
         return [
             "datacenter" => $values["datacenter"],

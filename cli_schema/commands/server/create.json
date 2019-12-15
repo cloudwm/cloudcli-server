@@ -126,6 +126,7 @@
       "usage": "Power on server after server created. (optional, default: yes)",
       "cloneUsage": "Power on server after server created. (optional, default: yes, not copied from source server)",
       "default": "yes",
+      "cloneDefault": "yes",
       "validate-boolean": true
     },
     "<< getSchemaPart flags/wait >>",

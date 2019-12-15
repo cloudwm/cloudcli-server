@@ -78,6 +78,7 @@ class ProxyServerGet
                         $valueRes = ProxyServerHttp::parseClientResponse(
                             $res["client"]->get(str_replace("<".$arrayFlag.">", $value, $serverPath))
                         );
+                        // \Log::info($valueRes);
                         if (!$valueRes || Arr::get($valueRes, 'error')) {
                             return $valueRes;
                         } else {
