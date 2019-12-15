@@ -92,17 +92,22 @@ class ProxyServerPostProcessingMethods
             }
             $netIps[$network_id] = Arr::get($network, "ip", "auto");
             $netSubnets[$network_id] = "";
-            $netPrefixes[$network_id] = "";
+            $netPrefixes[$network_id] = 0;
         }
         ksort($netIps);
         ksort($netModes);
         ksort($netNames);
         ksort($netSubnets);
         ksort($netPrefixes);
-        $trafficPackage = $values["monthlypackage"];
         switch (strtolower(trim($values["billingcycle"]))) {
-            case "monthly": $billingMode = 0; break;
-            case "hourly": $billingMode = 1; break;
+            case "monthly":
+                $billingMode = 0;
+                $trafficPackage = $values["monthlyPackage"];
+                break;
+            case "hourly":
+                $billingMode = 1;
+                $trafficPackage = "t5000";
+                break;
             default: throw new ProxyServerInvalidArgumentException("billingcycle");
         }
         switch (strtolower($values["managed"])) {
@@ -125,6 +130,7 @@ class ProxyServerPostProcessingMethods
             "nServers" => 1,
             "names" => [$values["name"]],
             "cpuStr" => $values["cpu"],
+            "cpuType" => $values["cpu"][strlen($values["cpu"])-1],
             "ramMB" => $values["ram"],
             "diskSizesGB" => $diskSizeGB,
             "password" => $values["password"],
@@ -146,7 +152,8 @@ class ProxyServerPostProcessingMethods
             "sourceServerId" => Arr::get($values, "sourceServerId", ''),
             "userId" => 0,
             "ownerId" => 0,
-            "srcUI" => true
+            "srcUI" => true,
+            "selectedKey" => null
         ];
     }
 
