@@ -158,20 +158,7 @@
       },
       {
         "name": "password",
-        "flag": "password",
-        "serverProcessing": [
-          {
-            "method":  "validateChars",
-            "atLeastOneOf":  [
-              "qwertyuiopasdfghjklzxcvbnm",
-              "QWERTYUIOPASDFGHJKLZXCVBNM",
-              "0123456789"
-            ],
-            "extraAllowedChars": "!@#$^&*()~",
-            "minLength": 10,
-            "maxLength": 20
-          }
-        ]
+        "flag": "password"
       },
       {
         "name": "datacenter",
