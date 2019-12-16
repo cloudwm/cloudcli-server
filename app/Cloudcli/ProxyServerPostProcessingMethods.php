@@ -102,7 +102,7 @@ class ProxyServerPostProcessingMethods
         switch (strtolower(trim($values["billingcycle"]))) {
             case "monthly":
                 $billingMode = 0;
-                $trafficPackage = $values["monthlyPackage"];
+                $trafficPackage = $values["monthlypackage"];
                 break;
             case "hourly":
                 $billingMode = 1;
