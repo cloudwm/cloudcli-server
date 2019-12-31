@@ -227,6 +227,8 @@ class ProxyServerPost
                 }
                 if (Arr::get($fieldValues, "billingcycle", null) === null) {
                     $fieldValues["billingcycle"] = Arr::get($clientResponse, "billingMode") == 0 ? "monthly" : "hourly";
+                } else {
+                    $fieldValues["billingcycle"] = strtolower(trim($fieldValues["billingcycle"]));
                 }
                 if (Arr::get($fieldValues, "monthlypackage", null) === null && $fieldValues["billingcycle"] == "monthly") {
                     $fieldValues["monthlypackage"] = Arr::get($clientResponse, "trafficPackage");

@@ -56,6 +56,7 @@ class ProxyServer extends BaseServer {
         $cpu = $request->input('cpu', null);
         $ram = $request->input('ram', null);
         $billingcycle = $request->input('billingcycle', null);
+        if (!empty($billingcycle)) $billingcycle = strtolower(trim($billingcycle));
         $monthlypackage = $request->input('monthlypackage', null);
         $flags = [
             ["flag" => "dailybackup", "param" => "backup"],
