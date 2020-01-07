@@ -1,0 +1,72 @@
+{
+  "use": "tags",
+  "short": "List/manage server tags",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "add",
+      "usage": "Name of a new or existing tag to add to the server"
+    },
+    {
+      "name": "remove",
+      "usage": "Name of tag to remove from the server"
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/tags",
+    "method": "serverTags",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "https://console.kamatera.com/svc/tags/ot.server/<id>",
+    "serverMethod": "GET",
+    "prePostActions": [
+      {
+        "runIfNotEmpty": ["serverId", "add"],
+        "httpMethod": "POST",
+        "path": "/svc/tags",
+        "payload": {"objectType":"ot.server","objectId":"<serverId>","tagName":"<add>"}
+      },
+      {
+        "runIfNotEmpty": ["serverId", "remove"],
+        "httpMethod": "DELETE",
+        "path": "/svc/tags/ot.server/<serverId>/<remove>"
+      }
+    ],
+    "fields": [
+      {
+        "name": "add",
+        "flag": "add",
+        "hide": true
+      },
+      {
+        "name": "remove",
+        "flag": "remove",
+        "hide": true
+      },
+      {
+        "name": "name",
+        "flag": "name",
+        "hide": true
+      },
+      {
+        "name": "server id",
+        "hide": true
+      },
+      {
+        "name": "tag name"
+      }
+    ],
+    "postGetResponsesActions": [
+      {"collapseResponses":  true},
+      {"parseTags":  true}
+    ]
+  }
+}

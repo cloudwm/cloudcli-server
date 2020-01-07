@@ -195,6 +195,7 @@ class ProxyServerHttpPostMethods
                             return $res;
                         }
                     }
+                    $isJson = true;
                     if (Arr::get($prePostAction, "postJson")) {
                         $postJson = [];
                         foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
@@ -208,7 +209,7 @@ class ProxyServerHttpPostMethods
                         $res = $requestRes["client"]->request($httpMethod, $path, ['json' => $postJson]);
                     } elseif ($httpMethod == "POST") {
                         $postMultipart = [];
-                        foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
+                        foreach ($prePostAction["payload"] as $payloadK => $payloadV) {
                             $postMultipart[] = [
                                 "name" => $payloadK,
                                 "contents" => self::replacePrePostActionContext($payloadV, $prePostActionsContext)
@@ -216,15 +217,19 @@ class ProxyServerHttpPostMethods
                         }
                         $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
                         $res = $requestRes["client"]->request($httpMethod, $path, ['multipart' => $postMultipart]);
-                    } else {
+                    } elseif (Arr::has($prePostAction, "payload")) {
                         $formParams = [];
                         foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
                             $formParams[$payloadK] = self::replacePrePostActionContext($payloadV, $prePostActionsContext);
                         }
                         $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
                         $res = $requestRes["client"]->request($httpMethod, $path, ["form_params" => $formParams]);
+                    } else {
+                        $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
+                        $res = $requestRes["client"]->request($httpMethod, $path);
+                        $isJson = false;
                     }
-                    $res = ProxyServerHttp::parseClientResponse($res);
+                    $res = ProxyServerHttp::parseClientResponse($res, $isJson);
                     if (Arr::get($res, "error")) {
                         if (Arr::get($res, "response")) {
                             \Log::error($res);
@@ -322,6 +327,13 @@ class ProxyServerHttpPostMethods
                 ];
             };
             $responses = $response;
+        }
+        if (Arr::get($postGetResponsesAction, "parseTags")) {
+            $newResponses = [];
+            foreach ($responses as $tagName) {
+                $newResponses[] = ["server id" => $context['onlyOneServer_serverId'], "tag name" => $tagName];
+            }
+            $responses = $newResponses;
         }
         return $responses;
     }
@@ -452,7 +464,7 @@ class ProxyServerHttpPostMethods
                     $prePostActionsContext[$k] = $v;
                 }
                 if (Arr::get($command, "schemaCommand.run.onlyOneServer")) {
-                    $prePostActionsContext["serverId"] = $serverIds[0];
+                    $prePostActionsContext["serverId"] = $context['onlyOneServer_serverId'] = $serverIds[0];
                 }
                 foreach ($command["schemaCommand"]["run"]["prePostActions"] as $prePostAction) {
                     $prePostActionRes = self::runPrePostAction($request, $prePostAction, $prePostActionsContext);

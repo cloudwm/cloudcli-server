@@ -41,17 +41,28 @@ class ProxyServerHttp
         ];
     }
 
-    static function parseClientResponse(Response $res) {
-        $decoded_response = json_decode($res->getBody(), true);
-        $last_error = (json_last_error() == JSON_ERROR_NONE) ? null : json_last_error_msg();
-        if (!$last_error && $res->getStatusCode() == 200) {
-            return $decoded_response;
+    static function parseClientResponse(Response $res, $isJson=true) {
+        if ($isJson) {
+            $decoded_response = json_decode($res->getBody(), true);
+            $last_error = (json_last_error() == JSON_ERROR_NONE) ? null : json_last_error_msg();
+            if (!$last_error && $res->getStatusCode() == 200) {
+                return $decoded_response;
+            } else {
+                return [
+                    "error" => true,
+                    "status_code" => $res->getStatusCode(),
+                    "response" => $decoded_response,
+                    "json_decode_error" => $last_error
+                ];
+            }
+        } elseif ($res->getStatusCode() == 200) {
+            return ["response" => $res->getBody()];
         } else {
             return [
                 "error" => true,
                 "status_code" => $res->getStatusCode(),
-                "response" => $decoded_response,
-                "json_decode_error" => $last_error
+                "response" => $res->getBody(),
+                "json_decode_error" => null
             ];
         }
     }
