@@ -335,6 +335,17 @@ class ProxyServerHttpPostMethods
             }
             $responses = $newResponses;
         }
+        if (Arr::get($postGetResponsesAction, "parseReports")) {
+            $newResponses = [];
+            foreach ($responses['report'] as $report) {
+                $ts = $report['ts']; unset($report['ts']);
+                $dt = date_create_from_format('U', $ts/1000);
+                $report['month'] = $dt->format('m');
+                $report['year'] = $dt->format('Y');
+                $newResponses[] = $report;
+            }
+            $responses = $newResponses;
+        }
         return $responses;
     }
 

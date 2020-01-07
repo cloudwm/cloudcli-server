@@ -185,6 +185,7 @@ class Schema {
                         self::getSchemaPart("commands/server/rename", $context),
                         self::getSchemaPart("commands/server/statistics", $context),
                         self::getSchemaPart("commands/server/tags", $context),
+                        self::getSchemaPart("commands/server/reports", $context),
                     ]
                 ];
 

@@ -1,0 +1,80 @@
+{
+  "use": "reports",
+  "short": "Get server monthly usage reports",
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    }
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/report",
+    "method": "post",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/svc/server/<id>/reports",
+    "serverMethod": "GET",
+    "fields": [
+      {
+        "name": "id",
+        "hide": true
+      },
+      {
+        "name": "name",
+        "flag": "name",
+        "hide": true
+      },
+      {
+        "name": "year"
+      },
+      {
+        "name": "month"
+      },
+      {
+        "name": "cpu"
+      },
+      {
+        "name": "ram"
+      },
+      {
+        "name": "disk"
+      },
+      {
+        "name": "diskTraffic"
+      },
+      {
+        "name": "wanRcTraffic"
+      },
+      {
+        "name": "wanTrTraffic"
+      },
+      {
+        "name": "wanRcPer"
+      },
+      {
+        "name": "wanTrPer"
+      },
+      {
+        "name": "lanRcTraffic"
+      },
+      {
+        "name": "lanTrTraffic"
+      },
+      {
+        "name": "lanRcPer"
+      },
+      {
+        "name": "lanTrPer"
+      }
+    ],
+    "postGetResponsesActions": [
+      {"collapseResponses":  true},
+      {"parseReports":  true}
+    ]
+  }
+}
