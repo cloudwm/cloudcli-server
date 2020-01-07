@@ -11,6 +11,11 @@
       "usage": "Server name or regular expression matching a single server"
     },
     {
+      "name": "all",
+      "usage": "Show all metrics",
+      "bool": true
+    },
+    {
       "name": "cpu",
       "usage": "Show CPU metrics",
       "bool": true
@@ -78,6 +83,11 @@
       },
       {
         "name": "value"
+      },
+      {
+        "name": "all",
+        "flag": "all",
+        "hide": true, "bool": true
       },
       {
         "name": "cpu",

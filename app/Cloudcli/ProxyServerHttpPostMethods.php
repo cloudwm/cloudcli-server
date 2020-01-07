@@ -352,7 +352,8 @@ class ProxyServerHttpPostMethods
     static function serverStatisticsPathPreProcessing($request, $path, &$context) {
         $category = '';
         $error = '';
-        foreach (['network', 'ram', 'cpu', 'disksIops', 'disksTransfer'] as $k) {
+        $allCategories = ['network', 'ram', 'cpu', 'disksIops', 'disksTransfer'];
+        foreach ($allCategories as $k) {
             if ($request->input($k) == 'true') {
                 if ($category == '') {
                     $category = $k;
@@ -366,7 +367,11 @@ class ProxyServerHttpPostMethods
             return [null, $error];
         }
         if ($category == '') {
-            return [null, 'Please choose a metric to show'];
+            if ($request->input('all') == 'true') {
+                $category = 'all';
+            } else {
+                return [null, 'Please choose a metric to show'];
+            }
         }
         $context['statisticsSelectedCategory'] = $category;
         $startdate = $request->input('startdate');
@@ -395,12 +400,20 @@ class ProxyServerHttpPostMethods
                 $enddate = $enddate->format('Y-m-d') . 'T' . $enddate->format('H:i:s') . '.000Z';
 //                \Log::info($startdate);
 //                \Log::info($enddate);
-                $path .= '?category='.$category.'&dtFrom='.$startdate.'&dtTo='.$enddate;
-                return [$path, ''];
+                if ($category == 'all') {
+                    $paths = [];
+                    foreach ($allCategories as $_category) {
+                        $paths[] = $path.'?category='.$_category.'&dtFrom='.$startdate.'&dtTo='.$enddate;
+                    }
+                    return [$paths, ''];
+                } else {
+                    $path .= '?category='.$category.'&dtFrom='.$startdate.'&dtTo='.$enddate;
+                    return [$path, ''];
+                }
             }
         } else {
             if (!$startdate || !$enddate) {
-                return [null, 'Please specify both startdate and enddate flags'];
+                return [null, 'Please specify period, or startdate and enddate flags'];
             } else {
                 try {
                     $startdate = \DateTime::createFromFormat('Ymd  -- H:i:s', $startdate.'  -- 00:00:00');
@@ -411,8 +424,16 @@ class ProxyServerHttpPostMethods
                 }
                 $startdate = $startdate->format('Y-m-d') . 'T' . $startdate->format('H:i:s') . '.000Z';
                 $enddate = $enddate->format('Y-m-d') . 'T' . $enddate->format('H:i:s') . '.000Z';
-                $path .= '?category='.$category.'&dtFrom='.$startdate.'&dtTo='.$enddate;
-                return [$path, ''];
+                if ($category == 'all') {
+                    $paths = [];
+                    foreach ($allCategories as $_category) {
+                        $paths[] = $path.'?category=' . $_category . '&dtFrom=' . $startdate . '&dtTo=' . $enddate;
+                    }
+                    return [$paths, ''];
+                } else {
+                    $path .= '?category=' . $category . '&dtFrom=' . $startdate . '&dtTo=' . $enddate;
+                    return [$path, ''];
+                }
             }
         }
     }
@@ -496,11 +517,11 @@ class ProxyServerHttpPostMethods
                         $serverPostMultipart[] = $multiPartField;
                     }
                 }
-                $path = str_replace("<id>", $serverId, $command["schemaCommand"]["run"]["serverPath"]);
+                $path = $pathOrPaths = str_replace("<id>", $serverId, $command["schemaCommand"]["run"]["serverPath"]);
                 if (Arr::get($command, "schemaCommand.run.serverPathPreProcessing")) {
                     foreach ($command['schemaCommand']['run']['serverPathPreProcessing'] as $serverPathProcessing) {
                         if (Arr::get($serverPathProcessing, 'serverStatisticsPath')) {
-                            [$path, $error] = self::serverStatisticsPathPreProcessing($request, $path, $context);
+                            [$pathOrPaths, $error] = self::serverStatisticsPathPreProcessing($request, $path, $context);
                             if ($error) {
                                 return [
                                     "error" => true,
@@ -510,27 +531,32 @@ class ProxyServerHttpPostMethods
                         }
                     }
                 }
-                $postCommand = $command;
-                $postCommand["path"] = $path;
-                $response = self::returnProxyHttpPostResponse($request, $httpMethod, $postCommand, $serverPostMultipart, $context);
-                $responses[] = $response;
-                if (Arr::get($response, "error")) {
-                    return [
-                        "error" => true,
-                        "message" => "Error response from server: ".json_encode($responses),
-                        "responses" => $responses
-                    ];
-                } elseif ($httpMethod != "GET") {
-                    if (is_array($response)) {
-                        foreach ($response as $commandId) {
-                            $commandIds[] = "$commandId";
-                        }
-                    } else {
+                if (!is_array($pathOrPaths)) {
+                    $pathOrPaths = [$pathOrPaths];
+                }
+                foreach ($pathOrPaths as $path) {
+                    $postCommand = $command;
+                    $postCommand["path"] = $path;
+                    $response = self::returnProxyHttpPostResponse($request, $httpMethod, $postCommand, $serverPostMultipart, $context);
+                    $responses[] = $response;
+                    if (Arr::get($response, "error")) {
                         return [
                             "error" => true,
-                            "message" => "Failed to parse command IDs from server response",
+                            "message" => "Error response from server: ".json_encode($responses),
                             "responses" => $responses
                         ];
+                    } elseif ($httpMethod != "GET") {
+                        if (is_array($response)) {
+                            foreach ($response as $commandId) {
+                                $commandIds[] = "$commandId";
+                            }
+                        } else {
+                            return [
+                                "error" => true,
+                                "message" => "Failed to parse command IDs from server response",
+                                "responses" => $responses
+                            ];
+                        }
                     }
                 }
             }
