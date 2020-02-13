@@ -56,7 +56,19 @@
       },
       {
         "name": "backup"
+      },
+      {
+        "name": "priceMonthlyOn"
+      },
+      {
+        "name": "priceHourlyOn"
+      },
+      {
+        "name": "priceHourlyOff"
       }
+    ],
+    "postGetResponsesActions": [
+        {"addServerPricingInfo": true}
     ]
   }
 }

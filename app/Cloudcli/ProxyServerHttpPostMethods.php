@@ -346,6 +346,23 @@ class ProxyServerHttpPostMethods
             }
             $responses = $newResponses;
         }
+        if (Arr::get($postGetResponsesAction, "addServerPricingInfo")) {
+            foreach ($responses as &$response) {
+                $serverId = $response["id"];
+                $serverPricing = ProxyServerGet::get($context['request'], [
+                    "path" => "/svc/pricing/serverConfig/${serverId}?cpu=&ramMB=&diskSizesGB[]=0&managed=&backup=&traffic=",
+                    "schemaCommand" => []
+                ]);
+                if (Arr::get($serverPricing, 'error')) {
+                    \Log::error($serverPricing);
+                    throw new Exception("Failed to get server pricing (serverId=${serverId})");
+                } else {
+                    $response["priceMonthlyOn"] = "${serverPricing["monthly"]}";
+                    $response["priceHourlyOn"] = "${serverPricing["hourlyOn"]}";
+                    $response["priceHourlyOff"] = "${serverPricing["hourlyOff"]}";
+                }
+            }
+        }
         return $responses;
     }
 
