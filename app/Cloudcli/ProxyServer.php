@@ -9,6 +9,7 @@ use GuzzleHttp\RequestOptions;
 use http\Exception\InvalidArgumentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ProxyServer extends BaseServer {
@@ -180,8 +181,176 @@ class ProxyServer extends BaseServer {
         }
     }
 
+    function _makeRequest(Request $request, $method, $path, $options=[]) {
+        $res = ProxyServerHttp::getHttpClient($request);
+        if ($res["error"]) {
+            return $res;
+        } else {
+            $clientResponse = $res["client"]->request($method, $path, $options);
+            $res = ProxyServerHttp::parseClientResponse($clientResponse);
+            if (Arr::get($res, "error")) {
+                if (Arr::get($res, "response")) {
+                    \Log::error($res);
+                    return [
+                        "error" => true,
+                        "message" => json_encode($res["response"])
+                    ];
+                } else {
+                    \Log::error($res);
+                    return [
+                        "error" => true,
+                        "message" => "Unexpected error"
+                    ];
+                }
+            } else {
+                return $res;
+            }
+        }
+    }
+
+    private function _getCpuCores($cpuType, $cpuStrs) {
+        $cpuCores = [];
+        foreach ($cpuStrs as $cpuStr) {
+            $cpuCore = intval(str_replace($cpuType, '', $cpuStr));
+            if ($cpuCores > 0) {
+                $cpuCores[] = $cpuCore;
+            } else {
+                throw new \Exception('Invalid cpuStr: ' . $cpuStr);
+            }
+        }
+        return $cpuCores;
+    }
+
+    private function _getCapabilities($request, $datacenter) {
+        $res = $this->_makeRequest($request, "GET", "/svc/serverCreate/datacenterConfiguration/${datacenter}?userId=0");
+        $capabilities = [
+            'diskSizeGB' => $res['diskSizesGBConf'],
+            "monthlyTrafficPackage" => [],
+            'defaultMonthlyTrafficPackage' => $res['trafficPackage'],
+            "cpuTypes" => [],
+        ];
+        foreach ($res['trafficPackageConf'] as $trafficPackageCode) {
+            if (Str::startsWith($trafficPackageCode, "t")) {
+                $trafficPackageDescription = Str::after($trafficPackageCode, "t") . 'GB/month on 10Gbit/sec port';
+            } elseif (Str::startsWith($trafficPackageCode, "b")) {
+                $trafficPackageDescription = Str::after($trafficPackageCode, "b") . 'Mbit/sec unmetered on 10Gbit/sec port';
+            } else {
+                $trafficPackageDescription = "contact us for details about this traffic package";
+            }
+            $capabilities['monthlyTrafficPackage'][$trafficPackageCode] = $trafficPackageDescription;
+        }
+        foreach ($res['cpuConf'] as $cpuType => $cpuStrs) {
+            $capabilities['cpuTypes'][] = [
+                'id' => $cpuType,
+                'name' => [
+                    'A' => 'Type A - Availability',
+                    'B' => 'Type B - General Purpose',
+                    'D' => 'Type D - Dedicated',
+                    'T' => 'Type T - Burstable'
+                ][$cpuType],
+                'description' => [
+                    'A' => 'Server CPUs are assigned to a non-dedicated physical CPU thread with no resources guaranteed.',
+                    'B' => 'Server CPUs are assigned to a dedicated physical CPU Thread with reserved resources guaranteed.',
+                    'D' => 'Server CPU are assigned to a dedicated physical CPU Core (2 threads) with reserved resources guaranteed.',
+                    'T' => 'Server CPUs are assigned to a dedicated physical CPU thread with reserved resources guaranteed.'
+                ][$cpuType],
+                'cpuCores' => $this->_getCpuCores($cpuType, $res['cpuConf'][$cpuType]),
+                'ramMB' => $res['ramMBConf'][$cpuType],
+            ];
+        }
+        return $capabilities;
+    }
+
     function getServerOptions($request, $command) {
-        return $this->get($request, $command);
+        if ($request->input('capabilities')) {
+            // /service/server?capabilities=1&datacenter=DATACENTER
+            // returns available capabilities for given datacenter
+            $datacenter = $request->input('datacenter');
+            if (!$datacenter) throw new Exception('datacenter is required');
+            return $this->_getCapabilities($request, $datacenter);
+        } elseif ($request->input('sizes')) {
+            // /service/server?sizes=1&datacenter=DATACENTER
+            // returns list of machine sizes for given DATACENTER
+            $datacenter = $request->input('datacenter');
+            if (!$datacenter) throw new Exception('datacenter is required');
+            $capabilities = $this->_getCapabilities($request, $datacenter);
+            $cpuCapabilities = $capabilities['cpuTypes'][0];
+            $sizes = [
+                [
+                    'id' => 'small',
+                    'ramMB' => 4096,
+                    'cpuCores' => 2,
+                    'cpuType' => $cpuCapabilities['id'],
+                    'diskSizeGB' => 30,
+                    'monthlyTrafficPackage' => $capabilities['defaultMonthlyTrafficPackage'],
+                ],
+                [
+                    'id' => 'medium',
+                    'ramMB' => 8192,
+                    'cpuCores' => 4,
+                    'cpuType' => $cpuCapabilities['id'],
+                    'diskSizeGB' => 60,
+                    'monthlyTrafficPackage' => $capabilities['defaultMonthlyTrafficPackage'],
+                ],
+                [
+                    'id' => 'large',
+                    'ramMB' => 16384,
+                    'cpuCores' => 8,
+                    'cpuType' => $cpuCapabilities['id'],
+                    'diskSizeGB' => 100,
+                    'monthlyTrafficPackage' => $capabilities['defaultMonthlyTrafficPackage'],
+                ],
+            ];
+            foreach ($sizes as &$size) {
+                foreach ($cpuCapabilities['cpuCores'] as $cpuCore) if ($cpuCore >= $size['cpuCores']) break;
+                foreach ($cpuCapabilities['ramMB'] as $ramMB) if ($ramMB >= $size['ramMB']) break;
+                foreach ($capabilities['diskSizeGB'] as $diskSizeGB) if ($diskSizeGB >= $size['diskSizeGB']) break;
+                $size['cpuCores'] = $cpuCore;
+                $size['ramMB'] = $ramMB;
+                $size['diskSizeGB'] = $diskSizeGB;
+            }
+            return $sizes;
+        } elseif ($request->input('images')) {
+            // /service/server?images=1&datacenter=DATACENTER
+            // returns list of disk images for given datacenter
+            $datacenter = $request->input('datacenter');
+            if (!$datacenter) $datacenter = 'EU';
+            $res = $this->_makeRequest($request, "GET", "/svc/serverCreate/datacenterConfiguration/${datacenter}?userId=0");
+            if (Arr::get($res, 'error')) return $res;
+            $diskImages = [];
+            foreach ($res['serverCategoryDiskImages'] as $serverCategory) {
+                $osTitleName = $serverCategory['oStitleName'];  // CentOS / Debian / Windows / ...
+                foreach ($serverCategory['diskImages'] as $diskImage) {
+                    $diskImages[] = [
+                        "datacenter" => $datacenter,
+                        "os" => $osTitleName,
+                        "id" => $diskImage['id'],
+                        "name" => $diskImage['description'],
+                        "code" => $diskImage['name'],
+                        "osDiskSizeGB" => $diskImage['osDiskSizeGB'],
+                        "ramMBMin" => $diskImage['ramMBMin'],
+                    ];
+                }
+            }
+            return $diskImages;
+        } elseif ($request->input('datacenter')) {
+            // /service/server?datacenter=1
+            // returns list of datacenters
+            $res = $this->_makeRequest($request, "GET", "/svc/serverCreate/datacenters?routeDescription=serverCreate");
+            if (Arr::get($res, 'error')) return $res;
+            $datacenters = [];
+            foreach ($res as $datacenter) {
+                $datacenters[] = [
+                    "id" => $datacenter['id'],
+                    'name' => $datacenter['name'],
+                    'category' => $datacenter['category'],
+                    'subCategory' => $datacenter['subCategory']
+                ];
+            }
+            return $datacenters;
+        } else {
+            return $this->get($request, $command);
+        }
     }
 
     function createServer($request, $command) {

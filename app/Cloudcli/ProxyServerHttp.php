@@ -9,6 +9,7 @@ use GuzzleHttp\RequestOptions;
 use http\Exception\InvalidArgumentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ProxyServerHttp
@@ -41,14 +42,27 @@ class ProxyServerHttp
         ];
     }
 
-    static function parseClientResponse(Response $res, $isJson=true) {
+    static function sanitizeInputData($data) {
+        $sanitizedData = [];
+        foreach ($data as $k=>$v) {
+            if (Str::contains(Str::lower($k), "pass")) {
+                $v = str_repeat('*', Str::length($v));
+            } elseif (is_array($v)) {
+                $v = self::sanitizeInputData($v);
+            }
+            $sanitizedData[$k] = $v;
+        }
+        return $sanitizedData;
+    }
+
+    static function parseClientResponse(Response $res, $isJson=true, $inputData=null) {
         if ($isJson) {
             $decoded_response = json_decode($res->getBody(), true);
             $last_error = (json_last_error() == JSON_ERROR_NONE) ? null : json_last_error_msg();
             if (!$last_error && $res->getStatusCode() == 200) {
                 return $decoded_response;
             } else {
-//                \Log::error('failed to parse client response, raw body: '.$res->getBody());
+                \Log::error('invalid or error response: '.$res->getBody()."\ninputData=".json_encode(self::sanitizeInputData($inputData)));
                 return [
                     "error" => true,
                     "status_code" => $res->getStatusCode(),

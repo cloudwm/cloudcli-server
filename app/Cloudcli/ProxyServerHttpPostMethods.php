@@ -21,11 +21,24 @@ class ProxyServerHttpPostMethods
             return $res;
         } else {
             $serverPath = $command["schemaCommand"]["run"]["serverPath"];
-//            \Log::info("${httpMethod} ${res['server']}${serverPath} ".json_encode($postJson));
+            if (Arr::get($postJson, "password") == "__generate__" && Arr::get($postJson, "passwordValidate") == "__generate__") {
+                $password = substr(str_shuffle('abcdefghjklmnopqrstuvwxyz'), 0, 7).
+                            substr(str_shuffle('ABCDEFGHJKLMNOPQRSTUVWXYZ'), 0, 7).
+                            substr(str_shuffle('1234567890'), 0, 4).
+                            substr(str_shuffle('!@#$^&*()~'), 0, 2);
+                $postJson['password'] = $postJson['passwordValidate'] = $password;
+            } else {
+                $password = null;
+            }
+            \Log::info("${httpMethod} ${res['server']}${serverPath} ".json_encode($postJson));
             $clientResponse = $res["client"]->request($httpMethod, $serverPath, [
                 'json'  => $postJson
             ]);
-            $res = ProxyServerHttp::parseClientResponse($clientResponse);
+            $res = ProxyServerHttp::parseClientResponse($clientResponse, true, [
+                "httpMethod" => $httpMethod,
+                "serverPath" => $serverPath,
+                "postJson" => $postJson
+            ]);
         }
         if (Arr::get($res, "error")) {
             $messages = [];
@@ -48,15 +61,20 @@ class ProxyServerHttpPostMethods
             $res["message"] = implode('. ', $messages);
             return $res;
         } elseif (is_int($res) || is_string($res)) {
-            return ["$res"];
+            $res = ["$res"];
         } elseif (is_array($res) && count($res) == 1) {
-            return ["$res[0]"];
+            $res = ["$res[0]"];
         } else {
             return [
                 "error" => true,
                 "message" => "Invalid response from server",
                 "res" => $res
             ];
+        }
+        if ($password) {
+            return ["commandIds" => $res, "password" => $password];
+        } else {
+            return $res;
         }
     }
 
