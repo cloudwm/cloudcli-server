@@ -128,9 +128,17 @@ class ProxyServerPostProcessingMethods
         $tags = [];
         if (Arr::get($values, 'tag')) {
             foreach ($values['tag'] as $tag) {
-                $tags[] = ["value" => $tag, "label" => $tag];
+                if ($tag) {
+                    $tags[] = ["value" => $tag, "label" => $tag];
+                }
             }
         }
+        $script = Arr::get($values, 'script-file', '');
+        if (empty($script)) $script = '';
+        $sshKey = Arr::get($values, 'ssh-key', '');
+        if (empty($sshKey)) $sshKey = '';
+        $userData = Arr::get($values, 'userdata-file', '');
+        if (empty($userData)) $userData = '';
         return [
             "datacenter" => $values["datacenter"],
             "nServers" => 1,
@@ -160,10 +168,10 @@ class ProxyServerPostProcessingMethods
             "ownerId" => 0,
             "srcUI" => true,
             "selectedKey" => null,
-            "script" => Arr::get($values, 'script-file', ''),
-            "selectedSSHKeyValue" => Arr::get($values, 'ssh-key', ''),
+            "script" => $script,
+            "selectedSSHKeyValue" => $sshKey,
             "selectedTags" => $tags,
-            "userData" => Arr::get($values, 'userdata-file', ''),
+            "userData" => $userData,
         ];
     }
 
