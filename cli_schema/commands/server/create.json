@@ -132,8 +132,24 @@
     "<< getSchemaPart flags/wait >>",
     {
       "name": "ssh-key",
-      "usage": "Path to public key file, adds to server authorized keys after create is done. (requires --wait)",
-      "cloneUsage": "Path to public key file, adds to server authorized keys after create is done. (requires --wait, not cloned from server server)"
+      "usage": "Path to public SSH key file, adds to server authorized keys",
+      "cloneUsage": "Path to public SSH key file, adds to server authorized keys (not copied from source server)"
+    },
+    {
+      "name": "script-file",
+      "usage": "Path to script file to run on server startup, Bash script for Linux/FreeBSD servers, Powershell for Windows",
+      "cloneUsage": "Path to script file to run on server startup, Bash script for Linux/FreeBSD servers, Powershell for Windows (not copied from source server)"
+    },
+    {
+      "name": "userdata-file",
+      "usage": "Path to user data file",
+      "cloneUsage": "Path to user data file (not copied from source server)"
+    },
+    {
+      "name": "tag",
+      "array": true,
+      "usage": "Set server tags:\n--tag TAG1 --tag TAG2 ..",
+      "cloneUsage": "Set server tags:\n--tag TAG1 --tag TAG2 ..\n(not copied from source server)"
     }
   ],
   "run": {
@@ -209,6 +225,27 @@
       {
         "name": "poweronaftercreate",
         "flag": "poweronaftercreate"
+      },
+      {
+        "name": "ssh-key",
+        "flag": "ssh-key",
+        "fromFile": true
+      },
+      {
+        "name": "script-file",
+        "flag": "script-file",
+        "fromFile": true
+      },
+      {
+        "name": "userdata-file",
+        "flag": "userdata-file",
+        "fromFile": true
+      },
+      {
+        "name": "tag",
+        "flag": "tag",
+        "array": true,
+        "stringOnlyArray": true
       }
     ]
   }

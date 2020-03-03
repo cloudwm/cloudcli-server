@@ -122,6 +122,19 @@ class ProxyServerPost
         return [$postMultipart, null];
     }
 
+    static function getPostMultipartStringOnlyArrayField($postMultipart, $value, $flag, $schemaCommand, $runField) {
+        $items = explode(" ", $value);
+        if (Arr::get($schemaCommand["run"], "serverPostMultipartArray")) {
+            $postMultipart[] = [
+                "name" => $runField["name"],
+                "contents" => $items
+            ];
+        } else {
+            throw new \Exception('Invalid field usage');
+        }
+        return [$postMultipart, null];
+    }
+
     static function getPostMultipartFieldValue($postMultipart, $fieldName, $value, $runField) {
         $multiPartField = [
             "name" => $fieldName,
@@ -159,7 +172,11 @@ class ProxyServerPost
                 }
             }
             if ($runField && Arr::get($runField, "array")) {
-                list($postMultipart, $err) = self::getPostMultipartArrayField($postMultipart, $value, $flag, $schemaCommand, $runField);
+                if (Arr::get($runField, "stringOnlyArray")) {
+                    list($postMultipart, $err) = self::getPostMultipartStringOnlyArrayField($postMultipart, $value, $flag, $schemaCommand, $runField);
+                } else {
+                    list($postMultipart, $err) = self::getPostMultipartArrayField($postMultipart, $value, $flag, $schemaCommand, $runField);
+                }
             } else {
                 list($postMultipart, $err) = self::getPostMultipartFieldValue($postMultipart, $fieldName, $value, $runField);
             }
