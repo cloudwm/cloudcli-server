@@ -125,6 +125,20 @@ class ProxyServerPostProcessingMethods
             case "no": $poweroncompletion = false; break;
             default: throw new ProxyServerInvalidArgumentException("poweronaftercreate");
         }
+        $tags = [];
+        if (Arr::get($values, 'tag')) {
+            foreach ($values['tag'] as $tag) {
+                if ($tag) {
+                    $tags[] = ["value" => $tag, "label" => $tag];
+                }
+            }
+        }
+        $script = Arr::get($values, 'script-file', '');
+        if (empty($script)) $script = '';
+        $sshKey = Arr::get($values, 'ssh-key', '');
+        if (empty($sshKey)) $sshKey = '';
+        $userData = Arr::get($values, 'userdata-file', '');
+        if (empty($userData)) $userData = '';
         return [
             "datacenter" => $values["datacenter"],
             "nServers" => 1,
@@ -153,7 +167,11 @@ class ProxyServerPostProcessingMethods
             "userId" => 0,
             "ownerId" => 0,
             "srcUI" => true,
-            "selectedKey" => null
+            "selectedKey" => null,
+            "script" => $script,
+            "selectedSSHKeyValue" => $sshKey,
+            "selectedTags" => $tags,
+            "userData" => $userData,
         ];
     }
 
