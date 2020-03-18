@@ -8,7 +8,7 @@ from libcloud.compute.providers import get_driver
 cls = get_driver(Provider.KAMATERA)
 
 if os.environ.get('API_SERVER') == 'localhost':
-    kwargs = {'secure':False, 'host':'localhost', 'port':8000}
+    kwargs = {'secure': False, 'host': 'localhost', 'port': int(os.environ.get('CLOUDCLI_SERVER_PORT', '8000'))}
 driver = cls(os.environ['API_CLIENT_ID'], os.environ['API_SECRET'], **kwargs)
 
 # set create node params from capabilities, locations and size lists
