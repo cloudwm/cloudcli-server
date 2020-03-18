@@ -62,7 +62,7 @@ class ProxyServerHttp
             if (!$last_error && $res->getStatusCode() == 200) {
                 return $decoded_response;
             } else {
-                \Log::error('invalid or error response: '.$res->getBody()."\ninputData=".json_encode(self::sanitizeInputData($inputData)));
+                // \Log::error('invalid or error response: '.$res->getBody()."\ninputData=".json_encode(self::sanitizeInputData($inputData)));
                 return [
                     "error" => true,
                     "status_code" => $res->getStatusCode(),
