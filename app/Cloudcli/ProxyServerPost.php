@@ -162,7 +162,10 @@ class ProxyServerPost
             if ($runField && Arr::has($runField, "flag")) {
                 $flag = $flags[$runField["flag"]];
                 if (empty($value)) {
-                    if (Arr::get($flag, "required")) {
+                    if (
+                        Arr::get($flag, "required")
+                        && !(Arr::get($flag, "optionalIfFlag") && !empty(Arr::get($fieldValues, $flag["optionalIfFlag"])))
+                    ) {
                         // return self::_getInvalidFlagError($flag["name"]);
                         $errors[] = [$flag["name"], null, null];
                         continue;

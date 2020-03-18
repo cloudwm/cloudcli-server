@@ -21,7 +21,11 @@ class ProxyServerHttpPostMethods
             return $res;
         } else {
             $serverPath = $command["schemaCommand"]["run"]["serverPath"];
-            if (Arr::get($postJson, "password") == "__generate__" && Arr::get($postJson, "passwordValidate") == "__generate__") {
+            $generateDiscardPassword = (!empty(Arr::get($postJson, "selectedSSHKeyValue")) && empty(Arr::get($postJson, "password")));
+            if (
+                (Arr::get($postJson, "password") == "__generate__" && Arr::get($postJson, "passwordValidate") == "__generate__")
+                || $generateDiscardPassword
+            ) {
                 $password = substr(str_shuffle('abcdefghjklmnopqrstuvwxyz'), 0, 7).
                             substr(str_shuffle('ABCDEFGHJKLMNOPQRSTUVWXYZ'), 0, 7).
                             substr(str_shuffle('1234567890'), 0, 4).
@@ -71,7 +75,7 @@ class ProxyServerHttpPostMethods
                 "res" => $res
             ];
         }
-        if ($password) {
+        if ($password && !$generateDiscardPassword) {
             return ["commandIds" => $res, "password" => $password];
         } else {
             return $res;

@@ -82,6 +82,7 @@
       "usage": "Server password (a-z, A-Z, 0-9, !@#$^&*()~). (must be 10-20 characters long with at least 1 capital letter, 1 small letter and 1 digit, mandatory)",
       "cloneUsage": "Server password (a-z, A-Z, 0-9, !@#$^&*()~). (must be 10-20 characters long with at least 1 capital letter, 1 small letter and 1 digit, mandatory)",
       "required": true,
+      "optionalIfFlag": "ssh-key",
       "validate-regex": "[a-zA-Z0-9!@#$^&*()~)]{10,20}",
       "validate-password": true
     },
