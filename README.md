@@ -92,3 +92,22 @@ Log-in to Rancher and create a new workload:
 * Environment variables:
   * `CLOUDCLI_API_SERVER` = `https://api.example.com`
   * `CLOUDCLI_PROVIDER` = `proxy`
+
+## Running libcloud tests
+
+Create a Python virtualenv
+
+```
+mkdir tests/venv
+python3 -m virtualenv -p python3 tests/venv
+tests/venv/bin/pip install https://github.com/OriHoch/libcloud/archive/kamatera-compute.zip
+```
+
+Run the cloudcli-server on localhost and then run the tests:
+
+```
+export API_CLIENT_ID=XXX
+export API_SECRET=YYY
+export API_SERVER=localhost
+tests/venv/bin/python tests/libcloud_create_node.py && tests/venv/bin/python tests/libcloud_node_operations.py 
+```
