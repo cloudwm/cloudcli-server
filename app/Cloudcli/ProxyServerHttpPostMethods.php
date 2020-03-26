@@ -509,10 +509,14 @@ class ProxyServerHttpPostMethods
             $serverIds = self::getServerIdsFromName($request, $nameValue, $context, $serverNames);
         }
         if (count($serverIds) == 0) {
-            return [
-                "error" => true,
-                "message" => "No servers found (name='$nameValue')"
-            ];
+            if (Arr::get($command, "schemaCommand.run.allowNoServers") && $request->input("allow-no-servers")) {
+                return [];
+            } else {
+                return [
+                    "error" => true,
+                    "message" => "No servers found (name='$nameValue')"
+                ];
+            }
         }
         if (Arr::get($command, "schemaCommand.run.returnServerInfoWithIP", false)) {
             if (empty($serversInfo[0]["externalIp"])) {
@@ -638,9 +642,13 @@ class ProxyServerHttpPostMethods
             foreach ($postMultipart as $mp) {
                 $formParams[$mp["name"]] = $mp["contents"];
             }
+//            \Log::info($httpMethod);
+//            \Log::info($command["path"]);
+//            \Log::info($formParams);
             $res = ProxyServerHttp::parseClientResponse(
                 $res["client"]->request($httpMethod, $command["path"], ["form_params" => $formParams])
             );
+//            \Log::info($res);
         } else {
 //            \Log::info($httpMethod);
 //            \Log::info($command["path"]);

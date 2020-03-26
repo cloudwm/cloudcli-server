@@ -18,6 +18,7 @@
     "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
     "serverPath": "/service/server/<id>",
     "serverMethod": "GET",
+    "allowNoServers": true,
     "fields": [
       {
         "name": "id",
