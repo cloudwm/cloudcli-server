@@ -83,7 +83,7 @@ class BaseServerRequest {
                 }
             }
             if (count($messages) > 0) {
-                return response()->json(["message" => implode('. ', $messages)], $status_code);
+                $jsonResponse = ["message" => implode('. ', $messages)];
             } else {
                 if (count($unhandledResponses) > 0) {
                     $res["responses"] = $unhandledResponses;
@@ -91,10 +91,16 @@ class BaseServerRequest {
                 if (count($messages) > 0) {
                     $res["message"] = implode('. ', $messages);
                 }
-                return response()->json($res, $status_code);
+                $jsonResponse = $res;
             }
         } else {
-            return response()->json($res, 200);
+            $jsonResponse = $res;
+            $status_code = 200;
+        }
+        if ($request->header('X-CLOUDCLI-STATUSINJSON', '') == 'true') {
+            return response()->json(['response' => $jsonResponse, 'status' => $status_code], 200);
+        } else {
+            return response()->json($jsonResponse, $status_code);
         }
     }
 
