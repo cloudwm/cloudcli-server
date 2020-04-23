@@ -69,9 +69,11 @@ class ProxyServerHttpPostMethods
         } elseif (is_array($res) && count($res) == 1) {
             $res = ["$res[0]"];
         } else {
+            \Log::error("returnProxyHttpPostJsonResponse Invalid response from server");
+            \Log::error($res);
             return [
                 "error" => true,
-                "message" => "Invalid response from server",
+                "message" => "Invalid response from server: " . json_encode($res),
                 "res" => $res
             ];
         }
@@ -691,9 +693,11 @@ class ProxyServerHttpPostMethods
         } elseif (is_array($res) && count($res) == 1) {
             return ["$res[0]"];
         } else {
+            \Log::error("returnProxyHttpPostResponse Invalid response from server");
+            \Log::error($res);
             return [
                 "error" => true,
-                "message" => "Invalid response from server",
+                "message" => "Invalid response from server: " . json_encode($res),
                 "res" => $res
             ];
         }
