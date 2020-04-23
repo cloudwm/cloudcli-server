@@ -97,7 +97,7 @@ class BaseServerRequest {
             $jsonResponse = $res;
             $status_code = 200;
         }
-        if ($request->header('X-CLOUDCLI-STATUSINJSON', '') == 'true') {
+        if ($request && $request->header('X-CLOUDCLI-STATUSINJSON', '') == 'true') {
             return response()->json(['response' => $jsonResponse, 'status' => $status_code], 200);
         } else {
             return response()->json($jsonResponse, $status_code);
