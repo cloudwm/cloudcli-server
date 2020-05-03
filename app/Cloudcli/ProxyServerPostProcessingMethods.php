@@ -166,7 +166,7 @@ class ProxyServerPostProcessingMethods
             "sourceServerId" => Arr::get($values, "sourceServerId", ''),
             "userId" => 0,
             "ownerId" => 0,
-            "srcUI" => true,
+            "srcUI" => false,
             "selectedKey" => null,
             "script" => $script,
             "selectedSSHKeyValue" => $sshKey,
