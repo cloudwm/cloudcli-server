@@ -43,6 +43,7 @@ class ProxyServerHttpPostMethods
                 "serverPath" => $serverPath,
                 "postJson" => $postJson
             ]);
+            \Log::info($res);
         }
         if (Arr::get($res, "error")) {
             $messages = [];
