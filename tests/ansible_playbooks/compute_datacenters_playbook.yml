@@ -1,0 +1,8 @@
+- name: Get capabilities
+  hosts: localhost
+  tasks:
+    - kamatera.kamatera.kamatera_compute_options: {}
+      register: datacenters
+    - copy:
+        content: "{{ datacenters.datacenters | to_nice_json }}"
+        dest: "{{ output_dir | default('/tmp') }}/kamatera_datacenters.json"

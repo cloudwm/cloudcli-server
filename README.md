@@ -93,21 +93,69 @@ Log-in to Rancher and create a new workload:
   * `CLOUDCLI_API_SERVER` = `https://api.example.com`
   * `CLOUDCLI_PROVIDER` = `proxy`
 
-## Running libcloud tests
+## Running 3rd party integration tests
 
 Create a Python virtualenv
 
 ```
 mkdir tests/venv
 python3 -m virtualenv -p python3 tests/venv
-tests/venv/bin/pip install https://github.com/OriHoch/libcloud/archive/kamatera-compute.zip
 ```
 
-Run the cloudcli-server on localhost and then run the tests:
+Start cloudcli-server localy
+
+#### Running Libcloud tests
+
+Install Libcloud development version
+
+```
+tests/venv/bin/python3 -m pip install -e git+https://git-wip-us.apache.org/repos/asf/libcloud.git@trunk#egg=apache-libcloud
+```
+
+Run the tests:
 
 ```
 export API_CLIENT_ID=XXX
 export API_SECRET=YYY
 export API_SERVER=localhost
-tests/venv/bin/python tests/libcloud_create_node.py && tests/venv/bin/python tests/libcloud_node_operations.py 
+tests/venv/bin/python3 tests/libcloud_create_node.py && tests/venv/bin/python3 tests/libcloud_node_operations.py 
+```
+
+#### Running Ansible tests
+
+[Install latest Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+
+Verify version: `ansible-galaxy --version | grep "ansible-galaxy 2.9."`
+
+Install the Kamatera collection:
+
+```
+ansible-galaxy collection install --force https://github.com/OriHoch/ansible-collection-kamatera/releases/download/v0.0.1/kamatera-kamatera-0.0.0.tar.gz
+```
+
+Run the tests:
+
+```
+export KAMATERA_API_CLIENT_ID=
+export KAMATERA_API_SECRET=
+export KAMATERA_API_URL=http://localhost:8000
+tests/venv/bin/python3 tests/ansible.py
+```
+
+#### Running Salt tests
+
+Install Salt with Kamatera
+
+```
+tests/venv/bin/python3 -m pip install https://github.com/OriHoch/salt/archive/kamatera-cloud.zip
+```
+
+Run the tests:
+
+```
+export KAMATERA_API_CLIENT_ID=
+export KAMATERA_API_SECRET=
+export KAMATERA_API_URL=http://localhost:8000
+export SALT_BIN_DIR=`pwd`/tests/venv/bin
+tests/venv/bin/python3 tests/salt.py
 ```

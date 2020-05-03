@@ -1,0 +1,46 @@
+- name: Provisioning and operations example
+  hosts: localhost
+  tasks:
+    - kamatera.kamatera.kamatera_compute:
+        server_names: ['{{ server_name }}_1','{{ server_name }}_2']
+        state: present
+        datacenter: "{{ datacenter }}"
+        image: "{{ image }}"
+        cpu_type: "{{ cpu_type }}"
+        cpu_cores: "{{ cpu_cores }}"
+        ram_mb: "{{ ram_mb }}"
+        disk_size_gb: "{{ disk_size_gb }}"
+        extra_disk_sizes_gb:
+          - "{{ disk_size_2_gb }}"
+      register: res
+    - copy:
+        content: "{{ res | to_nice_json }}"
+        dest: "{{ output_dir | default('/tmp') }}/kamatera_create_servers.json"
+    - kamatera.kamatera.kamatera_compute:
+        server_names: '{{ res.server_names }}'
+        state: restarted
+      register: res
+    - copy:
+        content: "{{ res | to_nice_json }}"
+        dest: "{{ output_dir | default('/tmp') }}/kamatera_restart_servers.json"
+    - kamatera.kamatera.kamatera_compute:
+        server_names: '{{ res.server_names }}'
+        state: stopped
+      register: res
+    - copy:
+        content: "{{ res | to_nice_json }}"
+        dest: "{{ output_dir | default('/tmp') }}/kamatera_stop_servers.json"
+    - kamatera.kamatera.kamatera_compute:
+        server_names: '{{ res.server_names }}'
+        state: running
+      register: res
+    - copy:
+        content: "{{ res | to_nice_json }}"
+        dest: "{{ output_dir | default('/tmp') }}/kamatera_start_servers.json"
+    - kamatera.kamatera.kamatera_compute:
+        server_names: '{{ res.server_names }}'
+        state: absent
+      register: res
+    - copy:
+        content: "{{ res | to_nice_json }}"
+        dest: "{{ output_dir | default('/tmp') }}/kamatera_delete_servers.json"
