@@ -494,10 +494,8 @@ class ProxyServerHttpPostMethods
             throw new ProxyServerGetServerIdsException("Please specify 'name' or 'id' but not both", $nameValue, $idValue);
         } elseif (empty($nameValue) && empty($idValue)) {
             throw new ProxyServerGetServerIdsException("Missing server 'id' / 'name'");
-        } elseif (!empty($idValue)) {
-            $serverIds = [$idValue];
         } elseif (Arr::get($command, "schemaCommand.run.onlyOneServer", false)) {
-            $serversInfo = self::_getServerIdsAndIpsFromName($request, $nameValue, $context, $serverNames);
+            $serversInfo = self::_getServerIdsAndIps($request, $context);
             if (Arr::get($serversInfo, "error")) {
                 return $serversInfo;
             }
@@ -508,6 +506,8 @@ class ProxyServerHttpPostMethods
                 ];
             }
             $serverIds = [$serversInfo[0]["id"]];
+        } elseif (!empty($idValue)) {
+            $serverIds = [$idValue];
         } else {
             $serverIds = self::getServerIdsFromName($request, $nameValue, $context, $serverNames);
         }
@@ -731,7 +731,7 @@ class ProxyServerHttpPostMethods
         return null;
     }
 
-    static function _getServerIdsAndIpsFromName(Request $request, $name, $context, &$serverNames) {
+    static function _getServerIdsAndIps(Request $request, $context) {
         $serversInfo = [];
         $servers = call_user_func($context['handleInternalRequest'], $request, "serversInfo", [
             "path" => "/service/server/info",
