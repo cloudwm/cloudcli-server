@@ -77,7 +77,8 @@
         "hide": true
       },
       {
-        "name": "id"
+        "name": "id",
+        "flag": "id"
       },
       {
         "name": "name",
