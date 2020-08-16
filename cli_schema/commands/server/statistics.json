@@ -68,6 +68,7 @@
     "fields": [
       {
         "name": "id",
+        "flag": "id",
         "hide": true
       },
       {
