@@ -99,14 +99,14 @@ class ProxyServerPostProcessingMethods
         ksort($netNames);
         ksort($netSubnets);
         ksort($netPrefixes);
+        $trafficPackage = $values["monthlypackage"];
         switch (strtolower(trim($values["billingcycle"]))) {
             case "monthly":
                 $billingMode = 0;
-                $trafficPackage = $values["monthlypackage"];
                 break;
             case "hourly":
                 $billingMode = 1;
-                $trafficPackage = "t5000";
+                if (empty($trafficPackage)) $trafficPackage = "t5000";
                 break;
             default: throw new ProxyServerInvalidArgumentException("billingcycle");
         }
