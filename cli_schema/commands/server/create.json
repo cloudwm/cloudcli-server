@@ -117,7 +117,7 @@
     },
     {
       "name": "monthlypackage",
-      "usage": "Monthly billing cycle package (see server options subcommand). (optional in monthly billing cycle, default: t5000)",
+      "usage": "Monthly billing cycle package (see server options subcommand). (required for monthly billing cycle)",
       "cloneUsage": "Monthly billing cycle package (see server options subcommand). (optional in monthly billing cycle, default from source server)",
       "default": "t5000",
       "selectfrom-serveroption": "traffic"
