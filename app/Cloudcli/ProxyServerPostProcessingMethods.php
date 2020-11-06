@@ -106,7 +106,7 @@ class ProxyServerPostProcessingMethods
                 break;
             case "hourly":
                 $billingMode = 1;
-                if (empty($trafficPackage)) $trafficPackage = "t5000";
+                $trafficPackage = "";
                 break;
             default: throw new ProxyServerInvalidArgumentException("billingcycle");
         }
