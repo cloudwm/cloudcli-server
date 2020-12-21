@@ -81,7 +81,7 @@ class ProxyServerPostProcessingMethods
         $netPrefixes = [];
         foreach ($values["network"] as $network_id => $network) {
             $network_id = intval($network_id);
-            $network_name = strtolower(trim(Arr::get($network, "name", "")));
+            $network_name = trim(Arr::get($network, "name", ""));
             if (empty($network_name)) {throw new ProxyServerInvalidArgumentException("network name");}
             if ($network_name == "wan") {
                 $netNames[$network_id] = "auto";
