@@ -1,6 +1,10 @@
 {
   "use": "reports",
   "short": "Get server monthly usage reports",
+  "cliUsage": "Required arguments: one of --id or --name flags must be provided.",
+  "cliPreRunHooks": [
+    {"type":  "requireOneOf", "oneOf": ["id", "name"]}
+  ],
   "flags": [
     {
       "name": "id",

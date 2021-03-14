@@ -1,6 +1,10 @@
 {
   "use": "snapshot",
   "short": "List/manage server snapshots",
+  "cliUsage": "Required arguments: one of --id or --name flags must be provided.",
+  "cliPreRunHooks": [
+    {"type":  "requireOneOf", "oneOf": ["id", "name"]}
+  ],
   "wait": true,
   "flags": [
     {

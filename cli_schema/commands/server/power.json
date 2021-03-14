@@ -6,6 +6,10 @@
   ],
   "use": "<< use >>",
   "short": "<< short >> server/s",
+  "cliUsage": "Required arguments: one of --id or --name flags must be provided.",
+  "cliPreRunHooks": [
+    {"type":  "requireOneOf", "oneOf": ["id", "name"]}
+  ],
   "wait": true,
   "flags": [
     {

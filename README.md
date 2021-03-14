@@ -67,7 +67,7 @@ Start a proxy server which forwards requests to a compatible API server
 
 ```
 export CLOUDCLI_API_SERVER=http://server.example.com
-docker exec -e APP_DEBUG=true -e CLOUDCLI_API_SERVER -e CLOUDCLI_PROVIDER=proxy \
+docker exec -e CLOUDCLI_API_SERVER -e CLOUDCLI_PROVIDER=proxy \
             -it cloudcli-server-dev php artisan serve --host=0.0.0.0
 ``` 
 
