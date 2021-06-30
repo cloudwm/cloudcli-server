@@ -1,0 +1,80 @@
+{
+  "use": "hdlib",
+  "short": "List cloneable hard-disks / Clone to hard-disk library ",
+  "cliUsage": "Required arguments: one of --id or --name flags must be provided.",
+  "cliPreRunHooks": [
+    {"type":  "requireOneOf", "oneOf": ["id", "name"]}
+  ],
+  "wait": true,
+  "flags": [
+    {
+      "name": "id",
+      "usage": "Specific server UUID"
+    },
+    {
+      "name": "name",
+      "usage": "Server name or regular expression matching a single server"
+    },
+    {
+      "name": "clone",
+      "usage": "UUID Of hard-disk to clone"
+    },
+    {
+      "name": "image-name",
+      "usage": "Name of image to clone the hard-disk as"
+    },
+    "<< getSchemaPart flags/wait >>"
+  ],
+  "run": {
+    "cmd": "post",
+    "path": "/server/hdlib",
+    "method": "post",
+    "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
+    "onlyOneServer": true,
+    "serverPath": "/service/server/<id>/hdlib",
+    "serverMethod": "GET",
+    "prePostActions": [
+      {
+        "runIfNotEmpty": ["serverId", "clone"],
+        "httpMethod": "POST",
+        "path": "/service/server/<serverId>/hdlib",
+        "payload": {"disk_src_0":  "<clone>", "disk_name_0":  "<image-name>"},
+        "returnsCommandIDOnSuccess": true
+      }
+    ],
+    "fields": [
+      {
+        "name": "clone",
+        "flag": "clone",
+        "hide": true
+      },
+      {
+        "name": "image-name",
+        "flag": "image-name",
+        "hide": true
+      },
+      {
+        "name": "id",
+        "flag": "id",
+        "hide": true
+      },
+      {
+        "name": "name",
+        "flag": "name",
+        "hide": true
+      },
+      {
+        "name": "uuid"
+      },
+      {
+        "name": "sizeGB"
+      }
+    ],
+    "postGetResponsesActions": [
+      {
+        "collapseResponses": true,
+        "recursiveFlattenField": "child"
+      }
+    ]
+  }
+}
