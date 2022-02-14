@@ -73,7 +73,7 @@ docker exec -e CLOUDCLI_API_SERVER -e CLOUDCLI_PROVIDER=proxy \
 
 Updating dependencies:
 
-* `docker exec -it cloudcli-server php composer upgrade`
+* `docker exec -it cloudcli-server-dev composer upgrade`
 
 ## Deployment to Kubernetes using Rancher
 

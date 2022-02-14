@@ -378,13 +378,15 @@ class ProxyServerHttpPostMethods
                     "path" => "/svc/pricing/serverConfig/${serverId}?cpu=&ramMB=&diskSizesGB[]=0&managed=&backup=&traffic=",
                     "schemaCommand" => []
                 ]);
-                if (Arr::get($serverPricing, 'error')) {
-                    \Log::error($serverPricing);
-                    throw new Exception("Failed to get server pricing (serverId=${serverId})");
+                if (Arr::get($serverPricing, 'error') or Arr::get($serverPricing, 'errors')) {
+                    \Log::warning("postGetResponses addServerPricingInfo failed for server id ${serverId}:", $serverPricing);
+                    $response["priceMonthlyOn"] = "";
+                    $response["priceHourlyOn"] = "";
+                    $response["priceHourlyOff"] = "";
                 } else {
                     $response["priceMonthlyOn"] = "${serverPricing["monthly"]}";
                     $response["priceHourlyOn"] = "${serverPricing["hourlyOn"]}";
-                    $response["priceHourlyOff"] = "${serverPricing["hourlyOff"]}";
+                    $response["priceHourlyOff"] = "${serverPricing["hourlyOn"]}";
                 }
             }
         }
