@@ -1,7 +1,7 @@
-FROM php:7.1-apache
+FROM php:7.4-apache
 
-# https://github.com/composer/getcomposer.org/commits/master
-ENV COMPOSER_COMMIT=cb19f2aa3aeaa2006c0cd69a7ef011eb31463067
+# https://github.com/composer/getcomposer.org/commits/main
+ENV COMPOSER_COMMIT=30a8caf5d8e7c4069e243c378d01c7e3a3967bcc
 RUN curl -s "https://raw.githubusercontent.com/composer/getcomposer.org/${COMPOSER_COMMIT}/web/installer" | php &&\
     mv composer.phar /usr/local/bin/composer && chmod +x /usr/local/bin/composer
 RUN apt-get update && apt-get install -y git unzip libzip-dev && docker-php-ext-install zip bcmath
@@ -16,7 +16,7 @@ RUN chown -R 1000:1000 /home/cloudwm
 
 USER cloudwm
 WORKDIR /home/cloudwm
-RUN composer install --no-autoloader --no-scripts --no-suggest --no-interaction --no-plugins
+RUN composer install --no-autoloader --no-scripts --no-interaction --no-plugins
 
 USER root
 RUN sed -ri -e 's!/var/www/html!/home/cloudwm/public!g' /etc/apache2/sites-available/*.conf
