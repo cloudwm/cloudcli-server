@@ -14,6 +14,13 @@ use Throwable;
 
 class ProxyServer extends BaseServer {
 
+    public function __call($method, $args) {
+        return $this->get($args[0], $args[1]);
+    }
+
+    function createNetwork($request, $command) {
+        return Network::create($request, $command);
+    }
 
     function listServers($request, $command) {
         return $this->get($request, $command);

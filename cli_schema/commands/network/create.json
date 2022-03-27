@@ -1,0 +1,92 @@
+{
+    "use": "create",
+    "short": "Create a network",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "(required) create the network in this datacenter",
+            "required": true,
+            "string_to_uppercase": true
+        },
+        {
+            "name": "name",
+            "usage": "(required) network name",
+            "required": true
+        },
+        {
+            "name": "subnetIp",
+            "usage": "(required) subnetIP (e.g. 172.16.0.0)",
+            "required": true
+        },
+        {
+            "name": "subnetBit",
+            "usage": "(required) subnetBit (e.g. 23)",
+            "required": true,
+            "type": "integer"
+        },
+        {
+            "name": "gateway",
+            "usage": "(optional) gateway (e.g. 172.16.0.100)"
+        },
+        {
+            "name": "dns1",
+            "usage": "(optional) dns1 (e.g. 1.2.3.4)"
+        },
+        {
+            "name": "dns2",
+            "usage": "(optional) dns2 (e.g. 2.3.4.5)"
+        },
+        {
+            "name": "subnetDescription",
+            "usage": "(optional) subnet description"
+        }
+    ],
+    "run": {
+        "cmd": "post",
+        "path": "/service/network/create",
+        "method": "createNetwork",
+        "EmptyServerResponse": true,
+        "fields": [
+            {
+                "name": "datacenter",
+                "flag": "datacenter",
+                "hide": true
+            },
+            {
+                "name": "name",
+                "flag": "name",
+                "hide": true
+            },
+            {
+                "name": "subnetIp",
+                "flag": "subnetIp",
+                "hide": true
+            },
+            {
+                "name": "subnetBit",
+                "flag": "subnetBit",
+                "hide": true
+            },
+            {
+                "name": "gateway",
+                "flag": "gateway",
+                "hide": true
+            },
+            {
+                "name": "dns1",
+                "flag": "dns1",
+                "hide": true
+            },
+            {
+                "name": "dns2",
+                "flag": "dns2",
+                "hide": true
+            },
+            {
+                "name": "subnetDescription",
+                "flag": "subnetDescription",
+                "hide": true
+            }
+        ]
+    }
+}

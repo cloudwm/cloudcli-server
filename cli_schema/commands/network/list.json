@@ -1,0 +1,35 @@
+{
+    "use": "list",
+    "short": "List networks",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "Show networks from this datacenter",
+            "required": true
+        }
+    ],
+    "run": {
+        "cmd": "getList",
+        "path": "/service/networks",
+        "method": "listNetworks",
+        "serverPath": "/svc/networks/<datacenter>/networks?size=500",
+        "serverMethod": "GET",
+        "serverParseListItems": "items",
+        "fields": [
+            {
+                "name": "datacenter",
+                "flag": "datacenter",
+                "hide": true
+            },
+            {
+                "name": "ids"
+            },
+            {
+                "name": "names"
+            },
+            {
+                "name": "vlanId"
+            }
+        ]
+    }
+}

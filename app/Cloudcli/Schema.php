@@ -156,6 +156,7 @@ class Schema {
             case "commands":
                 return [
                     self::getSchemaPart("commands/server", $context),
+                    self::getSchemaPart("commands/network", $context),
                     self::getSchemaPart("commands/queue", $context),
                 ];
 
@@ -187,6 +188,17 @@ class Schema {
                         self::getSchemaPart("commands/server/tags", $context),
                         self::getSchemaPart("commands/server/reports", $context),
                         self::getSchemaPart("commands/server/hdlib", $context),
+                    ]
+                ];
+
+            case "commands/network":
+                return [
+                    "use" => "network",
+                    "short" => "Network management",
+                    "commands" => [
+                        self::getSchemaPart("commands/network/list", $context),
+                        self::getSchemaPart("commands/network/create", $context),
+                        self::getSchemaPart("commands/network/subnet_list", $context),
                     ]
                 ];
 

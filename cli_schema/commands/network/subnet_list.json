@@ -1,0 +1,60 @@
+{
+    "use": "subnet_list",
+    "short": "List network subnets",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "(required) Show subnets from this datacenter",
+            "required": true
+        },
+        {
+            "name": "vlanId",
+            "usage": "(required) Network / Vlan ID",
+            "required": true
+        }
+    ],
+    "run": {
+        "cmd": "getList",
+        "path": "/service/network/subnets",
+        "method": "listNetworkSubnets",
+        "serverPath": "/svc/networks/subnets?datacenter=<datacenter>&vlanId=<vlanId>&size=500",
+        "serverMethod": "GET",
+        "serverParseListItems": "subnets",
+        "fields": [
+            {
+                "name": "datacenter",
+                "flag": "datacenter",
+                "hide": true
+            },
+            {
+                "name": "vlanId",
+                "flag": "vlanId",
+                "hide": true
+            },
+            {
+                "name": "startRange"
+            },
+            {
+                "name": "endRange"
+            },
+            {
+                "name": "subnetIp"
+            },
+            {
+                "name": "subnetMask"
+            },
+            {
+                "name": "subnetDescription"
+            },
+            {
+                "name": "dns1"
+            },
+            {
+                "name": "dns2"
+            },
+            {
+                "name": "gateway"
+            }
+        ]
+    }
+}
