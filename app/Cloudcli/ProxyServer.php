@@ -3,23 +3,24 @@
 namespace App\Cloudcli;
 
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\RequestOptions;
-use http\Exception\InvalidArgumentException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Throwable;
 
 class ProxyServer extends BaseServer {
 
     public function __call($method, $args) {
-        return $this->get($args[0], $args[1]);
-    }
-
-    function createNetwork($request, $command) {
-        return Network::create($request, $command);
+        $staticCallMethod = Arr::get($args[1], "schemaCommand.run.proxyServerStaticCallMethod");
+        if ($staticCallMethod) {
+            [$className, $methodName] = $staticCallMethod;
+            switch ($className) {
+                case "Network": $class = Network::class; break;
+                default: throw new \Exception("Invalid className: $className");
+            }
+            return call_user_func_array([$class, $methodName], $args);
+        } else {
+            return $this->get($args[0], $args[1]);
+        }
     }
 
     function listServers($request, $command) {

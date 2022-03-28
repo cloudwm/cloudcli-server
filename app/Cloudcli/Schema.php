@@ -199,6 +199,10 @@ class Schema {
                         self::getSchemaPart("commands/network/list", $context),
                         self::getSchemaPart("commands/network/create", $context),
                         self::getSchemaPart("commands/network/subnet_list", $context),
+                        self::getSchemaPart("commands/network/subnet_create", $context),
+                        self::getSchemaPart("commands/network/subnet_edit", $context),
+                        self::getSchemaPart("commands/network/subnet_delete", $context),
+                        self::getSchemaPart("commands/network/delete", $context),
                     ]
                 ];
 
@@ -228,8 +232,23 @@ class Schema {
                 if (Arr::isAssoc($data)) {
                     $data = Arr::except($data, ["__comments__"]);
                 }
+                self::parseFieldsFromFlags($data);
                 return $data;
         }
     }
 
+    static function parseFieldsFromFlags(&$data) {
+        if (Arr::get($data, "run.fieldsFromFlags")) {
+            unset($data["run"]["fieldsFromFlags"]);
+            $fields = [];
+            foreach ($data["flags"] as &$flag) {
+                $field = Arr::get($flag, "__field", []);
+                unset($flag["__field"]);
+                $field["name"] = $flag["name"];
+                $field["flag"] = $flag["name"];
+                $fields[] = $field;
+            }
+            $data["run"]["fields"] = $fields;
+        }
+    }
 }

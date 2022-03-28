@@ -1,0 +1,26 @@
+{
+    "use": "subnet_delete",
+    "short": "Delete a network subnet",
+    "flags": [
+        {
+            "name": "subnetId",
+            "usage": "(required) the subnet id to delete",
+            "required": true,
+            "type": "integer"
+        }
+    ],
+    "run": {
+        "cmd": "post",
+        "path": "/service/network/subnet/delete",
+        "method": "deleteNetworkSubnet",
+        "SimpleJsonServerResponse": true,
+        "proxyServerStaticCallMethod": ["Network", "postSimpleJson"],
+        "serverPath": "/svc/networks/subnets/subnet/<subnetId>/delete",
+        "postSimpleJson": {
+            "unsetFields": ["subnetId"],
+            "successMessage": "Subnet deleted successfully",
+            "httpMethod": "DELETE"
+        },
+        "fieldsFromFlags": true
+    }
+}

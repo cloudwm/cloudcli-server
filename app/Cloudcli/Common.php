@@ -53,4 +53,24 @@ class Common
     static function info(string $message, array $context = []) {
         Log::info($message, $context);
     }
+
+    static function renderServerPath($path, $values) {
+        foreach ($values as $key => $value) {
+            $path = str_replace("<{$key}>", $value, $path);
+        }
+        return $path;
+    }
+
+    static function requestHandler($request, $command, $callback) {
+        try {
+            [$values, $errors] = Common::parseFlags($request, $command);
+            if (count($errors) > 0) {
+                return Common::returnParseFlagsErrors($errors);
+            } else {
+                return call_user_func($callback, $values);
+            }
+        } catch (\Exception $e) {
+            return Common::handleException($e);
+        }
+    }
 }

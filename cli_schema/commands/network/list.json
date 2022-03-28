@@ -4,7 +4,7 @@
     "flags": [
         {
             "name": "datacenter",
-            "usage": "Show networks from this datacenter",
+            "usage": "(required) Show networks from this datacenter",
             "required": true
         }
     ],
@@ -12,14 +12,16 @@
         "cmd": "getList",
         "path": "/service/networks",
         "method": "listNetworks",
+        "proxyServerStaticCallMethod": ["Network", "getListItems"],
         "serverPath": "/svc/networks/<datacenter>/networks?size=500",
-        "serverMethod": "GET",
-        "serverParseListItems": "items",
+        "getListItems": {
+            "itemsKey": "items",
+            "maxItems": 500
+        },
         "fields": [
             {
                 "name": "datacenter",
-                "flag": "datacenter",
-                "hide": true
+                "flag": "datacenter"
             },
             {
                 "name": "ids"

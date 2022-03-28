@@ -1,17 +1,24 @@
 {
-    "use": "create",
-    "short": "Create a network",
+    "use": "subnet_edit",
+    "short": "Edit a network subnet, all values which are different then existing values will be updated",
     "flags": [
         {
             "name": "datacenter",
-            "usage": "(required) create the network in this datacenter",
+            "usage": "(required) edit a subnet in this datacenter",
             "required": true,
             "string_to_uppercase": true
         },
         {
-            "name": "name",
-            "usage": "(required) network name",
-            "required": true
+            "name": "subnetId",
+            "usage": "(required) the subnet id to edit",
+            "required": true,
+            "type": "integer"
+        },
+        {
+            "name": "vlanId",
+            "usage": "(required) the vlan id the subnet belongs to",
+            "required": true,
+            "type": "integer"
         },
         {
             "name": "subnetIp",
@@ -43,14 +50,15 @@
     ],
     "run": {
         "cmd": "post",
-        "path": "/service/network/create",
-        "method": "createNetwork",
+        "path": "/service/network/subnet/edit",
+        "method": "editNetworkSubnet",
         "SimpleJsonServerResponse": true,
         "proxyServerStaticCallMethod": ["Network", "postSimpleJson"],
-        "serverPath": "/svc/networks/<datacenter>/create",
+        "serverPath": "/svc/networks/subnets/subnet/<subnetId>/edit",
         "postSimpleJson": {
-            "unsetFields": ["datacenter"],
-            "successMessage": "Network created successfully"
+            "unsetFields": ["subnetId"],
+            "successMessage": "Subnet updated successfully",
+            "httpMethod": "PUT"
         },
         "fieldsFromFlags": true
     }

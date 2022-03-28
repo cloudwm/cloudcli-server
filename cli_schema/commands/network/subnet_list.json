@@ -9,7 +9,8 @@
         },
         {
             "name": "vlanId",
-            "usage": "(required) Network / Vlan ID",
+            "usage": "(required) Vlan ID of the network to show subnets from",
+            "type": "integer",
             "required": true
         }
     ],
@@ -17,19 +18,26 @@
         "cmd": "getList",
         "path": "/service/network/subnets",
         "method": "listNetworkSubnets",
+        "proxyServerStaticCallMethod": ["Network", "getListItems"],
         "serverPath": "/svc/networks/subnets?datacenter=<datacenter>&vlanId=<vlanId>&size=500",
-        "serverMethod": "GET",
-        "serverParseListItems": "subnets",
+        "getListItems": {
+            "itemsKey": "subnets",
+            "maxItems": 500
+        },
         "fields": [
             {
                 "name": "datacenter",
-                "flag": "datacenter",
-                "hide": true
+                "flag": "datacenter"
             },
             {
                 "name": "vlanId",
-                "flag": "vlanId",
-                "hide": true
+                "flag": "vlanId"
+            },
+            {
+                "name": "subnetId"
+            },
+            {
+                "name": "total"
             },
             {
                 "name": "startRange"

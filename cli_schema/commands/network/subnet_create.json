@@ -1,17 +1,18 @@
 {
-    "use": "create",
-    "short": "Create a network",
+    "use": "subnet_create",
+    "short": "Create a network subnet",
     "flags": [
         {
             "name": "datacenter",
-            "usage": "(required) create the network in this datacenter",
+            "usage": "(required) create the subnet in this datacenter",
             "required": true,
             "string_to_uppercase": true
         },
         {
-            "name": "name",
-            "usage": "(required) network name",
-            "required": true
+            "name": "vlanId",
+            "usage": "(required) the vlan or network id to create the subnet in",
+            "required": true,
+            "type": "integer"
         },
         {
             "name": "subnetIp",
@@ -43,14 +44,14 @@
     ],
     "run": {
         "cmd": "post",
-        "path": "/service/network/create",
-        "method": "createNetwork",
+        "path": "/service/network/subnet/create",
+        "method": "createNetworkSubnet",
         "SimpleJsonServerResponse": true,
         "proxyServerStaticCallMethod": ["Network", "postSimpleJson"],
-        "serverPath": "/svc/networks/<datacenter>/create",
+        "serverPath": "/svc/networks/<datacenter>/<vlanId>/create",
         "postSimpleJson": {
-            "unsetFields": ["datacenter"],
-            "successMessage": "Network created successfully"
+            "unsetFields": ["datacenter", "vlanId"],
+            "successMessage": "Subnet created successfully"
         },
         "fieldsFromFlags": true
     }
