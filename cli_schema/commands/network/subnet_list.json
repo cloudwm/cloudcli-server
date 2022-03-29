@@ -49,6 +49,9 @@
                 "name": "subnetIp"
             },
             {
+                "name": "subnetBit"
+            },
+            {
                 "name": "subnetMask"
             },
             {
@@ -62,6 +65,9 @@
             },
             {
                 "name": "gateway"
+            },
+            {
+                "name": "inUse"
             }
         ]
     }
