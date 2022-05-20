@@ -26,8 +26,14 @@ class BaseServer {
         return Schema::getServerCommands($schemaCommand, $commands);
     }
 
-    function getSchema() {
-        return Schema::getSchema();
+    function getSchema($request) {
+        $supports = $request->input("supports");
+        if ($supports) {
+            $supports = explode(",", $supports);
+        } else {
+            $supports = [];
+        }
+        return Schema::getSchema($supports);
     }
 
     function root() {

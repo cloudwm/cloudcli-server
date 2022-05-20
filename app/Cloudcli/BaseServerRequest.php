@@ -19,10 +19,6 @@ class BaseServerRequest {
     }
 
     static function handleRequest($request, $command, $server) {
-        if ($command["cmd"] == "_") {
-            // special server-only commands, must be called without a request
-            $request = null;
-        }
         try {
             $res = call_user_func([$server, $command['method']], $request, $command);
         } catch (Exception $e) {
