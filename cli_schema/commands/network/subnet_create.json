@@ -1,0 +1,58 @@
+{
+    "use": "subnet_create",
+    "short": "Create a network subnet",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "(required) create the subnet in this datacenter",
+            "required": true,
+            "string_to_uppercase": true
+        },
+        {
+            "name": "vlanId",
+            "usage": "(required) the vlan or network id to create the subnet in",
+            "required": true,
+            "type": "integer"
+        },
+        {
+            "name": "subnetIp",
+            "usage": "(required) subnetIP (e.g. 172.16.0.0)",
+            "required": true
+        },
+        {
+            "name": "subnetBit",
+            "usage": "(required) subnetBit (e.g. 23)",
+            "required": true,
+            "type": "integer"
+        },
+        {
+            "name": "gateway",
+            "usage": "(optional) gateway (e.g. 172.16.0.100)"
+        },
+        {
+            "name": "dns1",
+            "usage": "(optional) dns1 (e.g. 1.2.3.4)"
+        },
+        {
+            "name": "dns2",
+            "usage": "(optional) dns2 (e.g. 2.3.4.5)"
+        },
+        {
+            "name": "subnetDescription",
+            "usage": "(optional) subnet description"
+        }
+    ],
+    "run": {
+        "cmd": "post",
+        "path": "/service/network/subnet/create",
+        "method": "createNetworkSubnet",
+        "SimpleJsonServerResponse": true,
+        "proxyServerStaticCallMethod": ["Network", "postSimpleJson"],
+        "serverPath": "/svc/networks/<datacenter>/<vlanId>/create",
+        "postSimpleJson": {
+            "unsetFields": ["datacenter", "vlanId"],
+            "successMessage": "Subnet created successfully"
+        },
+        "fieldsFromFlags": true
+    }
+}

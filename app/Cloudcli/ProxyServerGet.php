@@ -65,6 +65,13 @@ class ProxyServerGet
                         $arrayFlag = $flagName;
                     } elseif (Arr::get($flag, 'bool')) {
                         $boolFlags[] = $flagName;
+                    } else {
+                        if (Arr::get($flag, "required") && empty($request->input($flagName))) {
+                            return ["error" => true, "message" => "$flagName is required", "status_code" => 400];
+                        }
+                        if (strstr($serverPath, "<" . $flagName . ">")) {
+                            $serverPath = str_replace("<" . $flagName . ">", $request->input($flagName), $serverPath);
+                        }
                     }
                 }
             }
@@ -94,6 +101,9 @@ class ProxyServerGet
                 $res = ProxyServerHttp::parseClientResponse(
                     $res["client"]->get($serverPath)
                 );
+                if (Arr::get($schemaCommand, 'run.serverParseListItems')) {
+                    $res = $res[$schemaCommand["run"]["serverParseListItems"]];
+                }
                 if (Arr::get($res, 'error') && Arr::get($res, 'response')) {
                     return $res['response'];
                 } else {

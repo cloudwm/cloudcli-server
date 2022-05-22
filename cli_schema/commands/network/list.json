@@ -1,0 +1,37 @@
+{
+    "use": "list",
+    "short": "List networks",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "(required) Show networks from this datacenter",
+            "required": true
+        }
+    ],
+    "run": {
+        "cmd": "getList",
+        "path": "/service/networks",
+        "method": "listNetworks",
+        "proxyServerStaticCallMethod": ["Network", "getListItems"],
+        "serverPath": "/svc/networks/<datacenter>/networks?size=500",
+        "getListItems": {
+            "itemsKey": "items",
+            "maxItems": 500
+        },
+        "fields": [
+            {
+                "name": "datacenter",
+                "flag": "datacenter"
+            },
+            {
+                "name": "ids"
+            },
+            {
+                "name": "names"
+            },
+            {
+                "name": "vlanId"
+            }
+        ]
+    }
+}

@@ -1,0 +1,31 @@
+{
+    "use": "delete",
+    "short": "Delete a network (must delete all subnets first)",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "(required) Delete a network in this datacenter",
+            "required": true
+        },
+        {
+            "name": "id",
+            "usage": "(required) Network ID to delete",
+            "type": "integer",
+            "required": true
+        }
+    ],
+    "run": {
+        "cmd": "post",
+        "path": "/service/network/delete",
+        "method": "deleteSubnet",
+        "SimpleJsonServerResponse": true,
+        "proxyServerStaticCallMethod": ["Network", "postSimpleJson"],
+        "serverPath": "/svc/networks/<datacenter>/<id>/delete",
+        "postSimpleJson": {
+            "unsetFields": ["datacenter", "id"],
+            "successMessage": "Network deleted successfully",
+            "httpMethod": "DELETE"
+        },
+        "fieldsFromFlags": true
+    }
+}

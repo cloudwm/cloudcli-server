@@ -54,8 +54,8 @@ class Schema {
         return $commands;
     }
 
-    static function getSchema() {
-        return self::getSchemaPart("root");
+    static function getSchema($supports=null) {
+        return self::getSchemaPart("root", null, $supports);
     }
 
     static function getCreateCloneServerSchemaPart($schema, $type) {
@@ -136,27 +136,32 @@ class Schema {
         return $schema;
     }
 
-    static function getSchemaPart($partName, $context=null) {
+    static function isSupport($supports, $val) {
+        return is_null($supports) or in_array($val, $supports);
+    }
+
+    static function getSchemaPart($partName, $context=null, $supports=null) {
         if (!$context) {
             $context = [];
         }
         foreach (self::CONTEXT_SCHEMA_PARTS as $v) {
             if (!Arr::has($context, "getSchemaPart ${v}") && $partName != $v) {
-                $context["getSchemaPart ${v}"] = self::getSchemaPart($v, $context);
+                $context["getSchemaPart ${v}"] = self::getSchemaPart($v, $context, $supports);
             }
         }
         switch ($partName) {
             case "root":
                 return [
-                    "schema_version" => self::getSchemaPart("version", $context),
-                    "commands" => self::getSchemaPart("commands", $context),
+                    "schema_version" => self::getSchemaPart("version", $context, $supports),
+                    "commands" => self::getSchemaPart("commands", $context, $supports),
                     "schema_generated_at" => (new \DateTime())->format(\DateTime::RFC3339)
                 ];
 
             case "commands":
                 return [
-                    self::getSchemaPart("commands/server", $context),
-                    self::getSchemaPart("commands/queue", $context),
+                    self::getSchemaPart("commands/server", $context, $supports),
+                    self::getSchemaPart("commands/network", $context, $supports),
+                    self::getSchemaPart("commands/queue", $context, $supports),
                 ];
 
             case "commands/server":
@@ -164,39 +169,58 @@ class Schema {
                     "use" => "server",
                     "short" => "Server management",
                     "commands" => [
-                        self::getSchemaPart("commands/server/list", $context),
-                        self::getSchemaPart("commands/server/terminate", $context),
-                        self::getSchemaPart("commands/server/power", ["use" => "poweron", "short" => "Power On", "power" => "on"]),
-                        self::getSchemaPart("commands/server/power", ["use" => "poweroff", "short" => "Power Off", "power" => "off"]),
-                        self::getSchemaPart("commands/server/power", ["use" => "reboot", "short" => "Reboot", "power" => "restart"]),
-                        self::getSchemaPart("commands/server/options", $context),
-                        self::getCreateCloneServerSchemaPart(self::getSchemaPart("commands/server/create", $context), "create"),
-                        self::getCreateCloneServerSchemaPart(self::getSchemaPart("commands/server/create", $context), "clone"),
-                        self::getSchemaPart("commands/server/info", $context),
-                        self::getSchemaPart("commands/server/attach", $context),
-                        self::getSchemaPart("commands/server/password", $context),
-                        self::getSchemaPart("commands/server/sshkey", $context),
-                        self::getSchemaPart("commands/server/description", $context),
-                        self::getSchemaPart("commands/server/snapshot", $context),
-                        self::getSchemaPart("commands/server/network", $context),
-                        self::getSchemaPart("commands/server/disk", $context),
-                        self::getSchemaPart("commands/server/configure", $context),
-                        self::getSchemaPart("commands/server/history", $context),
-                        self::getSchemaPart("commands/server/rename", $context),
-                        self::getSchemaPart("commands/server/statistics", $context),
-                        self::getSchemaPart("commands/server/tags", $context),
-                        self::getSchemaPart("commands/server/reports", $context),
-                        self::getSchemaPart("commands/server/hdlib", $context),
+                        self::getSchemaPart("commands/server/list", $context, $supports),
+                        self::getSchemaPart("commands/server/terminate", $context, $supports),
+                        self::getSchemaPart("commands/server/power", ["use" => "poweron", "short" => "Power On", "power" => "on"], $supports),
+                        self::getSchemaPart("commands/server/power", ["use" => "poweroff", "short" => "Power Off", "power" => "off"], $supports),
+                        self::getSchemaPart("commands/server/power", ["use" => "reboot", "short" => "Reboot", "power" => "restart"], $supports),
+                        self::getSchemaPart("commands/server/options", $context, $supports),
+                        self::getCreateCloneServerSchemaPart(self::getSchemaPart("commands/server/create", $context, $supports), "create"),
+                        self::getCreateCloneServerSchemaPart(self::getSchemaPart("commands/server/create", $context, $supports), "clone"),
+                        self::getSchemaPart("commands/server/info", $context, $supports),
+                        self::getSchemaPart("commands/server/attach", $context, $supports),
+                        self::getSchemaPart("commands/server/password", $context, $supports),
+                        self::getSchemaPart("commands/server/sshkey", $context, $supports),
+                        self::getSchemaPart("commands/server/description", $context, $supports),
+                        self::getSchemaPart("commands/server/snapshot", $context, $supports),
+                        self::getSchemaPart("commands/server/network", $context, $supports),
+                        self::getSchemaPart("commands/server/disk", $context, $supports),
+                        self::getSchemaPart("commands/server/configure", $context, $supports),
+                        self::getSchemaPart("commands/server/history", $context, $supports),
+                        self::getSchemaPart("commands/server/rename", $context, $supports),
+                        self::getSchemaPart("commands/server/statistics", $context, $supports),
+                        self::getSchemaPart("commands/server/tags", $context, $supports),
+                        self::getSchemaPart("commands/server/reports", $context, $supports),
+                        self::getSchemaPart("commands/server/hdlib", $context, $supports),
                     ]
                 ];
+
+            case "commands/network":
+                if (self::isSupport($supports, "SimpleJsonServerResponse")) {
+                    return [
+                        "use" => "network",
+                        "short" => "Network management",
+                        "commands" => [
+                            self::getSchemaPart("commands/network/list", $context, $supports),
+                            self::getSchemaPart("commands/network/create", $context, $supports),
+                            self::getSchemaPart("commands/network/subnet_list", $context, $supports),
+                            self::getSchemaPart("commands/network/subnet_create", $context, $supports),
+                            self::getSchemaPart("commands/network/subnet_edit", $context, $supports),
+                            self::getSchemaPart("commands/network/subnet_delete", $context, $supports),
+                            self::getSchemaPart("commands/network/delete", $context, $supports),
+                        ]
+                    ];
+                } else {
+                    return [];
+                }
 
             case "commands/queue":
                 return [
                     "use" => "queue",
                     "short" => "Task queue management",
                     "commands" => [
-                        self::getSchemaPart("commands/queue/list"),
-                        self::getSchemaPart("commands/queue/detail"),
+                        self::getSchemaPart("commands/queue/list", null, $supports),
+                        self::getSchemaPart("commands/queue/detail", null, $supports),
                     ]
                 ];
 
@@ -216,8 +240,23 @@ class Schema {
                 if (Arr::isAssoc($data)) {
                     $data = Arr::except($data, ["__comments__"]);
                 }
+                self::parseFieldsFromFlags($data);
                 return $data;
         }
     }
 
+    static function parseFieldsFromFlags(&$data) {
+        if (Arr::get($data, "run.fieldsFromFlags")) {
+            unset($data["run"]["fieldsFromFlags"]);
+            $fields = [];
+            foreach ($data["flags"] as &$flag) {
+                $field = Arr::get($flag, "__field", []);
+                unset($flag["__field"]);
+                $field["name"] = $flag["name"];
+                $field["flag"] = $flag["name"];
+                $fields[] = $field;
+            }
+            $data["run"]["fields"] = $fields;
+        }
+    }
 }

@@ -1,0 +1,65 @@
+{
+    "use": "subnet_edit",
+    "short": "Edit a network subnet, all values which are different then existing values will be updated",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "(required) edit a subnet in this datacenter",
+            "required": true,
+            "string_to_uppercase": true
+        },
+        {
+            "name": "subnetId",
+            "usage": "(required) the subnet id to edit",
+            "required": true,
+            "type": "integer"
+        },
+        {
+            "name": "vlanId",
+            "usage": "(required) the vlan id the subnet belongs to",
+            "required": true,
+            "type": "integer"
+        },
+        {
+            "name": "subnetIp",
+            "usage": "(required) subnetIP (e.g. 172.16.0.0)",
+            "required": true
+        },
+        {
+            "name": "subnetBit",
+            "usage": "(required) subnetBit (e.g. 23)",
+            "required": true,
+            "type": "integer"
+        },
+        {
+            "name": "gateway",
+            "usage": "(optional) gateway (e.g. 172.16.0.100)"
+        },
+        {
+            "name": "dns1",
+            "usage": "(optional) dns1 (e.g. 1.2.3.4)"
+        },
+        {
+            "name": "dns2",
+            "usage": "(optional) dns2 (e.g. 2.3.4.5)"
+        },
+        {
+            "name": "subnetDescription",
+            "usage": "(optional) subnet description"
+        }
+    ],
+    "run": {
+        "cmd": "post",
+        "path": "/service/network/subnet/edit",
+        "method": "editNetworkSubnet",
+        "SimpleJsonServerResponse": true,
+        "proxyServerStaticCallMethod": ["Network", "postSimpleJson"],
+        "serverPath": "/svc/networks/subnets/subnet/<subnetId>/edit",
+        "postSimpleJson": {
+            "unsetFields": ["subnetId"],
+            "successMessage": "Subnet updated successfully",
+            "httpMethod": "PUT"
+        },
+        "fieldsFromFlags": true
+    }
+}

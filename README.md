@@ -2,7 +2,7 @@
 
 Server-side component to support [cloudcli](https://github.com/cloudwm/cloudcli)
 
-## Running the server locally
+## Running the server with Docker
 
 Build
 
