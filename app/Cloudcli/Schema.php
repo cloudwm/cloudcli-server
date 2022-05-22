@@ -158,11 +158,13 @@ class Schema {
                 ];
 
             case "commands":
-                return [
-                    self::getSchemaPart("commands/server", $context, $supports),
-                    self::getSchemaPart("commands/network", $context, $supports),
-                    self::getSchemaPart("commands/queue", $context, $supports),
-                ];
+                $commands = [];
+                $commands[] = self::getSchemaPart("commands/server", $context, $supports);
+                if (self::isSupport($supports, "SimpleJsonServerResponse")) {
+                    $commands[] = self::getSchemaPart("commands/network", $context, $supports);
+                }
+                $commands[] = self::getSchemaPart("commands/queue", $context, $supports);
+                return $commands;
 
             case "commands/server":
                 return [
@@ -196,23 +198,19 @@ class Schema {
                 ];
 
             case "commands/network":
-                if (self::isSupport($supports, "SimpleJsonServerResponse")) {
-                    return [
-                        "use" => "network",
-                        "short" => "Network management",
-                        "commands" => [
-                            self::getSchemaPart("commands/network/list", $context, $supports),
-                            self::getSchemaPart("commands/network/create", $context, $supports),
-                            self::getSchemaPart("commands/network/subnet_list", $context, $supports),
-                            self::getSchemaPart("commands/network/subnet_create", $context, $supports),
-                            self::getSchemaPart("commands/network/subnet_edit", $context, $supports),
-                            self::getSchemaPart("commands/network/subnet_delete", $context, $supports),
-                            self::getSchemaPart("commands/network/delete", $context, $supports),
-                        ]
-                    ];
-                } else {
-                    return [];
-                }
+                return [
+                    "use" => "network",
+                    "short" => "Network management",
+                    "commands" => [
+                        self::getSchemaPart("commands/network/list", $context, $supports),
+                        self::getSchemaPart("commands/network/create", $context, $supports),
+                        self::getSchemaPart("commands/network/subnet_list", $context, $supports),
+                        self::getSchemaPart("commands/network/subnet_create", $context, $supports),
+                        self::getSchemaPart("commands/network/subnet_edit", $context, $supports),
+                        self::getSchemaPart("commands/network/subnet_delete", $context, $supports),
+                        self::getSchemaPart("commands/network/delete", $context, $supports),
+                    ]
+                ];
 
             case "commands/queue":
                 return [
