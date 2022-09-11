@@ -68,6 +68,7 @@
         {"serverStatisticsPath":  true}
     ],
     "ParseStatisticsResponse": true,
+    "postGetResponsesActions": [{"parseStatistics": true}],
     "serverMethod": "GET",
     "fields": [
       {

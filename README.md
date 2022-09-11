@@ -41,7 +41,7 @@ docker build --build-arg CLOUDCLI_USER_ID=`id -u` \
              --build-arg CLOUDCLI_GROUP_ID=`id -g` \
              -t cloudcli-server-dev -f Dockerfile.dev . &&\
 docker run -d --name cloudcli-server-dev --entrypoint bash \
-           -p 8000:8000 -p 8001:8001 \
+           --network host \
            -v `pwd`:/home/cloudwm/cloudcli-server cloudcli-server-dev -c "tail -f /dev/null"
 ```
 

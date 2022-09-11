@@ -390,6 +390,17 @@ class ProxyServerHttpPostMethods
                 }
             }
         }
+        if (Arr::get($postGetResponsesAction, "parseStatistics")) {
+            $newResponse = [];
+            foreach ($responses as $response) {
+                foreach ($response as $stat) {
+                    if ($stat["series"] != "interval") {
+                        $newResponse[] = $stat;
+                    }
+                }
+            }
+            $responses = [$newResponse];
+        }
         return $responses;
     }
 
