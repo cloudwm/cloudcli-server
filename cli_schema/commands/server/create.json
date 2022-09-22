@@ -6,6 +6,7 @@
   ],
   "use": "create",
   "short": "Create a server",
+  "long": "Create a server\n\nIt's recommended to use our server configuration interface at \nhttps://kamatera.github.io/kamateratoolbox/serverconfiggen.html?configformat=cloudcli \nto get ready to use cloudcli command arguments with valid configuration options \nand identifiers according to your selection.",
   "cloneUse": "clone",
   "cloneShort": "Clone a server",
   "wait": true,
