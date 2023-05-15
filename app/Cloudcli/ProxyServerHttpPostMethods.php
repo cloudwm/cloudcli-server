@@ -655,6 +655,7 @@ class ProxyServerHttpPostMethods
                 $res["client"]->request($httpMethod, $command["path"], ["json" => $jsonParams])
             );
         } elseif ($httpMethod == "DELETE" || $httpMethod == "PUT") {
+            $formParams = [];
             foreach ($postMultipart as $mp) {
                 $formParams[$mp["name"]] = $mp["contents"];
             }

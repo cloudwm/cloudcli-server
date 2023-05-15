@@ -194,6 +194,8 @@ class Schema {
                         self::getSchemaPart("commands/server/tags", $context, $supports),
                         self::getSchemaPart("commands/server/reports", $context, $supports),
                         self::getSchemaPart("commands/server/hdlib", $context, $supports),
+                        self::getSchemaPart("commands/server/suspend_resume", ["use" => "suspend", "short" => "Suspend"], $supports),
+                        self::getSchemaPart("commands/server/suspend_resume", ["use" => "resume", "short" => "Resume"], $supports),
                     ]
                 ];
 
