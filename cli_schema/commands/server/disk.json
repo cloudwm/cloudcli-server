@@ -60,7 +60,7 @@
             "runIfNotEmpty": ["serverId", "resize", "size"],
             "httpMethod": "PUT",
             "path": "/service/server/<serverId>/disk",
-            "payload": {"index":  "<resize>", "size": "<size>", "provision": 1},
+            "payload": {"index":  "<resize>", "size": "<size:int_gb>", "provision": 1},
             "returnsCommandIDOnSuccess": true
         }
     ],

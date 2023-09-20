@@ -86,12 +86,28 @@ class ProxyServerHttpPostMethods
     }
 
     static function replacePrePostActionContext($value, $prePostActionsContext) {
+        $returnIntVal = null;
         foreach ($prePostActionsContext as $contextK=>$contextV) {
-            if (is_string($contextV)) {
+            if ($value == "<${contextK}:int_gb>" || $value == "<${contextK}:int>") {
+                if ($value == "<${contextK}:int_gb>" && is_string($contextV) && preg_match("/^([0-9]+)gb$/i", $contextV, $matches)) {
+                    $contextV = $matches[1];
+                }
+                if ((string)(int)$contextV === $contextV) {
+                    if ($returnIntVal !== null) {
+                        throw new \Exception("Multiple <${contextK}:int> in the same string");
+                    } else {
+                        $returnIntVal = intval($contextV);
+                    }
+                }
+            } else if (is_string($contextV)) {
                 $value = str_replace("<".$contextK.">", $contextV, $value);
             }
         }
-        return $value;
+        if ($returnIntVal !== null) {
+            return $returnIntVal;
+        } else {
+            return $value;
+        }
     }
 
     static function _preprocessAddNetwork(Request $request, &$prePostActionsContext) {
@@ -243,10 +259,13 @@ class ProxyServerHttpPostMethods
                         $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
                         $res = $requestRes["client"]->request($httpMethod, $path, ['multipart' => $postMultipart]);
                     } elseif (Arr::has($prePostAction, "payload")) {
+//                        \Log::info("Handling payload prepost action");
+//                        \Log::info($prePostActionsContext);
                         $formParams = [];
                         foreach ($prePostAction["payload"] as $payloadK=>$payloadV) {
                             $formParams[$payloadK] = self::replacePrePostActionContext($payloadV, $prePostActionsContext);
                         }
+//                        \Log::info($formParams);
                         $path = self::replacePrePostActionContext($prePostAction["path"], $prePostActionsContext);
                         $res = $requestRes["client"]->request($httpMethod, $path, ["form_params" => $formParams]);
                     } else {
