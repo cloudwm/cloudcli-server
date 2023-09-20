@@ -31,21 +31,29 @@ class ProxyServerPostProcessingMethods
         $datacenter = Arr::get($values, 'datacenter');
         $disk_image = Arr::get($values, 'image');
         if ($datacenter and $disk_image) {
-            $image_id_parts = explode(':', $disk_image);
-            if (count($image_id_parts) == 2) {
-                $image_datacenter = $image_id_parts[0];
-                if ($image_datacenter != $datacenter) {
-                    throw new ProxyServerInvalidArgumentException(
-                        'disk image',
-                        "disk image ID must match the selected datacenter (${datacenter})"
-                    );
-                }
-            } else {
+            if (preg_match('/^[a-zA-Z0-9]+$/', $disk_image) === 1) {
                 ProxyServerPost::setMultipartValue(
                     $postMultipart,
                     'image',
-                    ProxyServerOptions::getDiskImageId($disk_image, $datacenter, $context)
+                    "${datacenter}:${disk_image}"
                 );
+            } else {
+                $image_id_parts = explode(':', $disk_image);
+                if (count($image_id_parts) == 2) {
+                    $image_datacenter = $image_id_parts[0];
+                    if ($image_datacenter != $datacenter) {
+                        throw new ProxyServerInvalidArgumentException(
+                            'disk image',
+                            "disk image ID must match the selected datacenter (${datacenter})"
+                        );
+                    }
+                } else {
+                    ProxyServerPost::setMultipartValue(
+                        $postMultipart,
+                        'image',
+                        ProxyServerOptions::getDiskImageId($disk_image, $datacenter, $context)
+                    );
+                }
             }
         } else {
             throw new ProxyServerInvalidArgumentException(

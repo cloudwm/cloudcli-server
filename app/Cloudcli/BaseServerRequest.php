@@ -22,7 +22,7 @@ class BaseServerRequest {
         try {
             $res = call_user_func([$server, $command['method']], $request, $command);
         } catch (Exception $e) {
-            \Log::error($e->getTraceAsString());
+            \Log::error($e->getMessage()."\n".$e->getTraceAsString());
             $res = [
                 "error" => true,
                 "message" => $command['method'] == 'post' ? 'Failed to run command ('.$command['schemaCommand']['use'].')' : "Failed to run command method (${command['method']})"
