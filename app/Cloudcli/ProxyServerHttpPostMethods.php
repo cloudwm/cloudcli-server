@@ -34,7 +34,7 @@ class ProxyServerHttpPostMethods
             } else {
                 $password = null;
             }
-            \Log::info("${httpMethod} ${res['server']}${serverPath} ".json_encode($postJson));
+            // \Log::info("${httpMethod} ${res['server']}${serverPath} ".json_encode($postJson));
             $clientResponse = $res["client"]->request($httpMethod, $serverPath, [
                 'json'  => $postJson
             ]);
@@ -43,7 +43,7 @@ class ProxyServerHttpPostMethods
                 "serverPath" => $serverPath,
                 "postJson" => $postJson
             ]);
-            \Log::info($res);
+            // \Log::info($res);
         }
         if (Arr::get($res, "error")) {
             $messages = [];

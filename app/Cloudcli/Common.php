@@ -51,7 +51,7 @@ class Common
     }
 
     static function info(string $message, array $context = []) {
-        Log::info($message, $context);
+        //Log::info($message, $context);
     }
 
     static function renderServerPath($path, $values) {
