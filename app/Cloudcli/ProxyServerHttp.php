@@ -28,8 +28,8 @@ class ProxyServerHttp
                 "message" => "Missing env var: CLOUDCLI_API_SERVER"
             ];
         }
-        \Log::info("Request IP: ". $request->ip());
-        \Log::info("Request Headers: " . json_encode($request->headers->all()));
+        // \Log::info("Request IP: ". $request->header("X-Forwarded-For"));
+        // \Log::info("Request Headers: " . json_encode($request->headers->all()));
         return [
             "error" => false,
             "server" => $server,
@@ -39,7 +39,7 @@ class ProxyServerHttp
                 "headers" => [
                     "AuthClientId" => $request->header("AuthClientId", env("CLOUDCLI_API_CLIENTID")),
                     "AuthSecret" => $request->header("AuthSecret", env("CLOUDCLI_API_SECRET")),
-                    "X-Forwarded-For" => $request->ip(),
+                    "X-Forwarded-For" => $request->header("X-Forwarded-For"),
                 ]
             ])
         ];
