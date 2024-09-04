@@ -375,7 +375,7 @@ class ProxyServerHttpPostMethods
         if (Arr::get($postGetResponsesAction, "parseTags")) {
             $newResponses = [];
             foreach ($responses as $tagName) {
-                $newResponses[] = ["server id" => $context['onlyOneServer_serverId'], "tag name" => $tagName];
+                $newResponses[] = ["id" => $context['onlyOneServer_serverId'], "tagName" => $tagName];
             }
             $responses = $newResponses;
         }

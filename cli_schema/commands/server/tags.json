@@ -29,7 +29,7 @@
     "method": "serverTags",
     "serverPostMethod": "returnProxyHttpMultiServerPostResponse",
     "onlyOneServer": true,
-    "serverPath": "https://console.kamatera.com/svc/tags/ot.server/<id>",
+    "serverPath": "/svc/tags/ot.server/<id>",
     "serverMethod": "GET",
     "prePostActions": [
       {
@@ -61,11 +61,12 @@
         "hide": true
       },
       {
-        "name": "server id",
+        "name": "id",
+        "flag": "id",
         "hide": true
       },
       {
-        "name": "tag name"
+        "name": "tagName"
       }
     ],
     "postGetResponsesActions": [
