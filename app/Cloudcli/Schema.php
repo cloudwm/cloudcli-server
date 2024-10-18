@@ -3,6 +3,7 @@
 namespace App\Cloudcli;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 
 
 class Schema {
@@ -154,7 +155,7 @@ class Schema {
                 return [
                     "schema_version" => self::getSchemaPart("version", $context, $supports),
                     "commands" => self::getSchemaPart("commands", $context, $supports),
-                    "schema_generated_at" => (new \DateTime())->format(\DateTime::RFC3339)
+                    "schema_generated_at" => (new \DateTime())->format(\DateTime::RFC3339),
                 ];
 
             case "commands":
@@ -164,6 +165,7 @@ class Schema {
                     $commands[] = self::getSchemaPart("commands/network", $context, $supports);
                 }
                 $commands[] = self::getSchemaPart("commands/queue", $context, $supports);
+                $commands[] = self::getSchemaPart("commands/k8s", $context, $supports);
                 return $commands;
 
             case "commands/server":
@@ -224,6 +226,15 @@ class Schema {
                     ]
                 ];
 
+            case "commands/k8s":
+                return array_merge(
+                    [
+                        "use" => "k8s",
+                        "short" => "Kubernetes management",
+                    ],
+                    self::getK8sSchema($context, $supports)
+                );
+
             /* default renderer decodes from a json file named as the partName */
             default:
                 $data = file_get_contents(
@@ -258,5 +269,23 @@ class Schema {
             }
             $data["run"]["fields"] = $fields;
         }
+    }
+
+    static function getK8sSchema($context, $supports)
+    {
+        $schema_url = env("K8S_OPENAPI_SCHEMA_URL", "https://cloudcli.cloudwm.com/k8s/openapi.json");
+        $schema = json_decode(file_get_contents($schema_url), true);
+        $commands = [];
+        foreach ($schema["paths"] as $path => $methods) {
+            foreach ($methods as $method => $conf) {
+                if (Arr::get($conf, "x-cloudcli-k8s")) {
+                    $commands[] = $conf["x-cloudcli-k8s"];
+                }
+            }
+        }
+        return [
+            "version" => $schema["info"]["version"],
+            "commands" => $commands,
+        ];
     }
 }
