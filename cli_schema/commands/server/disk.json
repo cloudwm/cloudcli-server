@@ -46,7 +46,7 @@
             "runIfNotEmpty": ["serverId", "add"],
             "httpMethod": "POST",
             "path": "/service/server/<serverId>/disk",
-            "payload": {"size":  "<add>"},
+            "payload": {"size":  "<add>", "provision": 1},
             "returnsCommandIDOnSuccess": true
         },
         {
