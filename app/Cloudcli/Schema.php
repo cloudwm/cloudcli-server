@@ -165,7 +165,9 @@ class Schema {
                     $commands[] = self::getSchemaPart("commands/network", $context, $supports);
                 }
                 $commands[] = self::getSchemaPart("commands/queue", $context, $supports);
-                $commands[] = self::getSchemaPart("commands/k8s", $context, $supports);
+                $commands[] = self::getSchemaPart("commands/datacenters", $context, $supports);
+                $commands[] = self::getSchemaPart("commands/images", $context, $supports);
+                # $commands[] = self::getSchemaPart("commands/k8s", $context, $supports);
                 return $commands;
 
             case "commands/server":

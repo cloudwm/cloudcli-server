@@ -424,4 +424,38 @@ class ProxyServer extends BaseServer {
         return parent::_handleInternalRequest($request, $method, $command);
     }
 
+    function listDatacenters($request, $command) {
+        $res = [];
+        foreach ($this->get($request, $command) as $k => $v) {
+            if (str_starts_with($v, "${k}: ")) {
+                $v = str_replace("${k}: ", "", $v);
+            }
+            $res[] = [
+                "id" => $k,
+                "region" => $v,
+            ];
+        }
+        return $res;
+    }
+
+    function listImages($request, $command) {
+        $datacenter = $request->input("datacenter");
+        $imageId = $request->input("image-id");
+        if (!$datacenter && !$imageId) {
+            throw new \Exception("Either datacenter or image-id argument must be specified");
+        }
+        if ($datacenter && $imageId) {
+            throw new \Exception("Exactly one of datacenter or image-id arguments must be specified but not both");
+        }
+        if ($datacenter) {
+            $command["schemaCommand"]["run"]["serverPath"] = "/service/server/options/images/${datacenter}";
+            return $this->get($request, $command);
+        } else {
+            $command["schemaCommand"]["run"]["serverPath"] = "/service/server/options/image/${imageId}";
+            $res = $this->get($request, $command);
+            $res["id"] = Arr::pull($res, "image");
+            return [$res];
+        }
+    }
+
 }

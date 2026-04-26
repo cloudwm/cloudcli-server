@@ -1,0 +1,17 @@
+{
+    "use": "datacenters",
+    "short": "List datacenters",
+    "run": {
+        "cmd": "getList",
+        "path": "/service/server/options/datacenters",
+        "method": "listDatacenters",
+        "fields": [
+            {
+                "name": "id"
+            },
+            {
+                "name": "region"
+            }
+        ]
+    }
+}

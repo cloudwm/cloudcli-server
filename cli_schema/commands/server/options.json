@@ -1,6 +1,6 @@
 {
   "use": "options",
-  "short": "List server options",
+  "short": "List server options - deprecated",
   "cache-file": "cloudcli-server-options.json",
   "run": {
     "cmd": "getListOfLists",

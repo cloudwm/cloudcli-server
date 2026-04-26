@@ -1,0 +1,40 @@
+{
+    "use": "images",
+    "short": "List and show image details",
+    "long": "List and show image details\n\nDue to the large amount of data for this command, you should always use --format=json or --format=yaml",
+    "flags": [
+        {
+            "name": "datacenter",
+            "usage": "List available images for this datacenter ID"
+        },
+        {
+            "name": "image-id",
+            "usage": "Show details for this image ID"
+        }
+    ],
+    "run": {
+        "cmd": "post",
+        "path": "/service/server/options/images",
+        "method": "listImages",
+        "serverMethod": "GET",
+        "SimpleJsonServerResponse": true,
+        "fields": [
+            {
+                "name": "datacenter",
+                "flag": "datacenter",
+                "hide": true
+            },
+            {
+                "name": "image-id",
+                "flag": "image-id",
+                "hide": true
+            },
+            {
+                "name": "id"
+            },
+            {
+                "name": "description"
+            }
+        ]
+    }
+}
