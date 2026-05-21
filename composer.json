@@ -12,7 +12,7 @@
         "fideloper/proxy": "4.4.1",
         "laravel/framework": "8.83.5",
         "laravel/tinker": "2.7.1",
-        "guzzlehttp/guzzle": "6.5.5",
+        "guzzlehttp/guzzle": "6.5.8",
         "ext-json": "*"
     },
     "require-dev": {
