@@ -1,4 +1,9 @@
-FROM php:7.4-apache
+FROM php:7.4.33-apache-bullseye
+
+# Temporary upstream security backport while the Laravel/PHP upgrade is pending.
+COPY docker/php-security/ /tmp/php-security/
+RUN bash /tmp/php-security/rebuild.sh
+LABEL org.cloudcli.php-security-backport="712e60f9edfd03f0960fc4fc3c2c375f42b90aa2"
 
 # https://github.com/composer/getcomposer.org/commits/main
 ENV COMPOSER_COMMIT=30a8caf5d8e7c4069e243c378d01c7e3a3967bcc

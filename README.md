@@ -4,6 +4,49 @@ Server-side component to support [cloudcli](https://github.com/cloudwm/cloudcli)
 
 ## Running the server with Docker
 
+### PHP security backport (October 2026)
+
+Both Dockerfiles rebuild PHP 7.4.33 with the PHP security team's source
+backport for CVE-2026-109618 and CVE-2026-109619. The patch is vendored in
+`docker/php-security/` and verified by SHA-256 during the build. Production
+rebuilds both the CLI and Apache module; development rebuilds the CLI used by
+`artisan serve`. Extension builds use the patched source as well.
+
+This is a temporary compatibility measure. `composer.json` requires PHP `^7.4`,
+and the locked `nette/schema`, `nette/utils`, and `phpspec/prophecy` versions
+exclude PHP 8.2 and newer. Moving directly to PHP 8.5 requires dependency
+upgrades and application compatibility testing. PHP 7.4 and Debian Bullseye
+are end-of-life: this backport addresses the two listed PHP vulnerabilities,
+not all outstanding runtime, OS, or application dependency vulnerabilities.
+The build installs Bullseye's final archived updates with package signature
+verification enabled. A supported PHP/framework/OS migration remains necessary.
+
+Rebuild **both** images and replace running containers to activate the fix;
+restarting a container created from an older image does not update its PHP:
+
+```sh
+docker build --pull -t cloudcli-server:php-security .
+docker build --pull -f Dockerfile.dev \
+  --build-arg CLOUDCLI_USER_ID="$(id -u)" \
+  --build-arg CLOUDCLI_GROUP_ID="$(id -g)" \
+  -t cloudcli-server-dev:php-security .
+docker image inspect cloudcli-server:php-security \
+  --format '{{ index .Config.Labels "org.cloudcli.php-security-backport" }}'
+```
+
+The label must be `712e60f9edfd03f0960fc4fc3c2c375f42b90aa2`.
+`php --version` still reports 7.4.33, so version-only scanners cannot identify
+this backport. The build checks the patch checksum, applies it without fuzzy
+matching, and verifies a new engine symbol in each installed PHP binary.
+Smoke-test with `CLOUDCLI_PROVIDER=test` before promoting the rebuilt image.
+Do not roll back to an unpatched image in response to unrelated deployment
+issues; retain a previously validated patched image for rollback.
+
+Sources: [PHP security advisory](https://www.php.net/archive/2026.php#2026-10-21-5),
+[upstream backport commit](https://github.com/php/php-src/commit/712e60f9edfd03f0960fc4fc3c2c375f42b90aa2).
+
+### Build and run
+
 Build
 
 ```
